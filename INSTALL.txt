@@ -1,0 +1,35 @@
+Copyright (c) 2007 Infrae. All rights reserved.
+See also LICENSE.txt
+
+Installing SilvaPAS
+=============================
+
+SilvaPAS needs (besides Silva) four Zope Products to
+work for its Radius support:
+
+* PluggableAuthService
+* PluginRegistry - needed by PluggableAuthService
+* GenericSetup - needed by PluggableAuthService
+
+Below are detailed instructions for the installation of the individual
+products.
+
+PluggableAuthService (1.5-final)
+--------------------------------
+
+http://www.zope.org/Products/PluggableAuthService
+
+Comment out everything in importexport.zcml as this depends on GenericSetup.
+
+PluginRegistry (1.1.2-final)
+----------------------------
+
+http://www.zope.org/Products/PluginRegistry
+
+After unpacking, rename to 'PluginRegistry'
+
+GenericSetup (1.3 final)
+------------------------
+
+http://www.zope.org/Products/GenericSetup
+
