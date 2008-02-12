@@ -54,6 +54,7 @@ def registerUserFolder(root):
     plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
     plugins.activatePlugin(IChallengePlugin, 'cookie_auth')
     plugins.activatePlugin(ICredentialsResetPlugin, 'cookie_auth')
+    plugins.activatePlugin(ICredentialsUpdatePlugin, 'cookie_auth')
     plugins.activatePlugin(IAuthenticationPlugin, 'users')
     plugins.activatePlugin(IUserEnumerationPlugin, 'users')
     plugins.activatePlugin(IRolesPlugin, 'roles')
