@@ -21,7 +21,6 @@ def uninstall(root):
     root.manage_addProduct['Silva'].manage_addSimpleMemberService('service_members')
     
 def is_installed(root):
-    assert hasattr(root, 'service_members')
     return IPASMemberService.providedBy(root.service_members)
 
 def registerViews(reg):
@@ -38,6 +37,7 @@ def registerUserFolder(root):
     # if there is another user folder already available, don't touch it
     if getattr(root.aq_base, 'acl_users', None) is not None:
         return
+
     root.manage_addProduct['PluggableAuthService'].addPluggableAuthService()
     acl_users = root.acl_users
     acl_users.manage_addProduct['PluggableAuthService'].addCookieAuthHelper('cookie_auth', 
@@ -45,8 +45,6 @@ def registerUserFolder(root):
     acl_users.cookie_auth.login_path = 'silva_login_form.html'
     acl_users.manage_addProduct['PluggableAuthService'].addZODBUserManager('users')
     acl_users.manage_addProduct['PluggableAuthService'].addZODBRoleManager('roles')
-
-
 
     plugins = acl_users.plugins
     plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
