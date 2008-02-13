@@ -1,16 +1,13 @@
-from Products.FileSystemSite.DirectoryView import manage_addDirectoryView
-from Products.Silva.install import add_fss_directory_view, add_helper, zpt_add_helper
+from Products.Silva.install import add_helper, zpt_add_helper
 from Products.PluggableAuthService.interfaces.plugins import *
 
+from interfaces import IPASMemberService
+
 def install(root):
-    """The view infrastructure for SilvaExtETHLDAP.
+    """Install PAS Support.
     """
-    # create the core views from filesystem
-    add_fss_directory_view(root.service_views, 'silva.pas.base',
-                           __file__, 'views')
+    # add login form
     add_helper(root, 'silva_login_form.html', globals(), zpt_add_helper, 0)
-    # also register views
-    registerViews(root.service_view_registry)
 
     # set up acl_users if needed
     registerUserFolder(root)
@@ -19,14 +16,13 @@ def install(root):
     registerServiceMembers(root)
     
 def uninstall(root):
-    unregisterViews(root.service_view_registry)
-    root.service_views.manage_delObjects(['silva.pas.base'])
     # remove special member service and install default silva one
     root.manage_delObjects(['service_members', 'silva_login_form.html'])
     root.manage_addProduct['Silva'].manage_addSimpleMemberService('service_members')
     
 def is_installed(root):
-    return hasattr(root.service_views, 'silva.pas.base')
+    assert hasattr(root, 'service_members')
+    return IPASMemberService.providedBy(root.service_members)
 
 def registerViews(reg):
     """Register core views on registry.

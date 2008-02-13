@@ -16,6 +16,9 @@ from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthS
 import types
 import urlparse
 
+from zope.interface import implements
+from interfaces import IPASMemberService
+
 
 # False interface to test if a container is a user folder.
 class _IUserFolder:
@@ -26,6 +29,8 @@ IUserFolder = _IUserFolder()
 
 class MemberService(SimpleMemberService):
     security = ClassSecurityInfo()
+
+    implements(IPASMemberService)
 
     meta_type = 'Silva Pluggable Auth Service Member Service'
     title = 'Silva Pluggable Auth Service Membership Service'

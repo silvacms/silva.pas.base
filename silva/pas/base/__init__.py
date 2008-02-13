@@ -2,7 +2,6 @@ import install
 import Membership
 
 from Products.Silva.ExtensionRegistry import extensionRegistry
-from Products.FileSystemSite.DirectoryView import registerDirectory
 
 def initialize(context):
     extensionRegistry.register(
@@ -15,4 +14,3 @@ def initialize(context):
                         Membership.manage_addMemberService),
         )
 
-    registerDirectory('views', globals())
