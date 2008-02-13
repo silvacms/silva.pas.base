@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+<!-- Silva 2.1 (unreleased) -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+      xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal">
+<head>
+  <title>Login Required</title>
+<link rel="stylesheet" href="frontend.css" type="text/css"
+  tal:attributes="href here/frontend.css/absolute_url" />
+</head>
+<body>
+  <div class="public">
+    <h3> Please log in </h3>
+
+    <form method="post" action=""
+          tal:attributes="action string:${here/absolute_url}/login">
+
+      <input type="hidden" name="came_from" value=""
+             tal:attributes="value request/came_from | string:"/>
+      <table cellpadding="2">
+        <tr>
+          <td><b>Login:</b> </td>
+          <td><input type="text" name="__ac_name" size="30" /></td>
+        </tr>
+        <tr>
+          <td><b>Password:</b></td>
+          <td><input type="password" name="__ac_password" size="30" /></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <br />
+            <input type="submit" value=" Log In " />
+          </td>
+        </tr>
+      </table>
+
+    </form>
+  </div>
+</body>
+</html>

@@ -14,10 +14,5 @@ def initialize(context):
         constructors = (Membership.manage_addMemberServiceForm,
                         Membership.manage_addMemberService),
         )
-    context.registerClass(
-        Membership.Member,
-        constructors = (Membership.manage_addMemberForm,
-                        Membership.manage_addMember),
-        )
 
     registerDirectory('views', globals())
