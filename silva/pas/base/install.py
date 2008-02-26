@@ -52,8 +52,10 @@ def registerUserFolder(root):
     plugins.activatePlugin(ICredentialsResetPlugin, 'cookie_auth')
     plugins.activatePlugin(ICredentialsUpdatePlugin, 'cookie_auth')
     plugins.activatePlugin(IAuthenticationPlugin, 'users')
+    plugins.activatePlugin(IUserAdderPlugin, 'users')
     plugins.activatePlugin(IUserEnumerationPlugin, 'users')
     plugins.activatePlugin(IRolesPlugin, 'roles')
+    plugins.activatePlugin(IRoleAssignerPlugin, 'roles')
     plugins.activatePlugin(IRoleEnumerationPlugin, 'roles')
 
 def registerServiceMembers(root):
