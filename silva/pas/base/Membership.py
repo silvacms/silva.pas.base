@@ -35,7 +35,7 @@ class MemberService(SimpleMemberService):
     meta_type = 'Silva Pluggable Auth Service Member Service'
     title = 'Silva Pluggable Auth Service Membership Service'
 
-    _use_direct_lookup = True
+    _use_direct_lookup = False
 
     # ZMI configuration  
 
