@@ -58,11 +58,26 @@ def registerUserFolder(root):
     plugins.activatePlugin(IRoleAssignerPlugin, 'roles')
     plugins.activatePlugin(IRoleEnumerationPlugin, 'roles')
 
+    createDefaultSilvaRolesInPAS(acl_users.roles)
+
+
+def createDefaultSilvaRolesInPAS(plugin):
+    """Create default Silva roles in the roles assigner plugin.
+    """
+    existing = [r['id'] for r in plugin.enumerateRoles()] 
+    blacklist = ['Anonymous', 'Authenticated',]
+    to_create = set(plugin.validRoles()).difference(existing + blacklist)
+
+    for role in to_create:
+        plugin.addRole(role)
+
+
 def registerServiceMembers(root):
     root.manage_delObjects(['service_members'])
     root.manage_addProduct['silva.pas.base'].manage_addMemberService(
         'service_members')
     
+
 
 
 
