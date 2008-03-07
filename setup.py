@@ -21,7 +21,7 @@ setup(name='silva.pas.base',
       include_package_data=True,
       zip_safe=False,
       install_requires=["Products.PluggableAuthService >= 1.5.0",
-                        "Products.GenericSetup >= 1.3.0",
+                        "Products.GenericSetup >= 1.3.0, < 1.4.0",
                         "setuptools"],
       )
 
