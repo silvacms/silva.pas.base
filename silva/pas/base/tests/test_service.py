@@ -34,7 +34,7 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         # And a acl_users set 
         self.failUnless(hasattr(root.aq_base, 'acl_users'))
         pas_acl = root.acl_users
-        default_plugins = ['plugins', 'cookie_auth', 'users', 'roles']
+        default_plugins = ['plugins', 'cookie_auth', 'users', 'roles', 'zope']
         self.assertEqual(pas_acl.objectIds(), default_plugins)
 
         # As well, Silva roles should be loaded in PAS (Owner is set

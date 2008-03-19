@@ -47,6 +47,9 @@ def registerUserFolder(root):
     add_product.addZODBUserManager('users')
     # Add a role source
     add_product.addZODBRoleManager('roles')
+    # Add a delegating source, to ask users to default Zope ACL 
+    add_product.manage_addDelegatingMultiPlugin('zope', 
+                                                delegate_path='/acl_users')
 
     plugins = acl_users.plugins
     plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
@@ -54,9 +57,12 @@ def registerUserFolder(root):
     plugins.activatePlugin(ICredentialsResetPlugin, 'cookie_auth')
     plugins.activatePlugin(ICredentialsUpdatePlugin, 'cookie_auth')
     plugins.activatePlugin(IAuthenticationPlugin, 'users')
+    plugins.activatePlugin(IAuthenticationPlugin, 'zope')
     plugins.activatePlugin(IUserAdderPlugin, 'users')
     plugins.activatePlugin(IUserEnumerationPlugin, 'users')
+    plugins.activatePlugin(IUserEnumerationPlugin, 'zope')
     plugins.activatePlugin(IRolesPlugin, 'roles')
+    plugins.activatePlugin(IRolesPlugin, 'zope')
     plugins.activatePlugin(IRoleAssignerPlugin, 'roles')
     plugins.activatePlugin(IRoleEnumerationPlugin, 'roles')
 
