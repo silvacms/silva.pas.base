@@ -20,22 +20,16 @@ def install(root):
     registerServiceMembers(root)
     
 def uninstall(root):
+    """Uninstall PAS Support.
+    """
     # remove special member service and install default silva one
     root.manage_delObjects(['service_members', 'silva_login_form.html'])
-    root.manage_addProduct['Silva'].manage_addSimpleMemberService('service_members')
+    add_product = root.manage_addProduct['Silva']
+    add_product.manage_addSimpleMemberService('service_members')
     
 def is_installed(root):
     return IPASMemberService.providedBy(root.service_members)
 
-def registerViews(reg):
-    """Register core views on registry.
-    """
-    pass
-
-def unregisterViews(reg):
-    """Unregister core views on registry.
-    """
-    pass
 
 def registerUserFolder(root):
     # if there is another user folder already available, don't touch it
@@ -44,11 +38,15 @@ def registerUserFolder(root):
 
     root.manage_addProduct['PluggableAuthService'].addPluggableAuthService()
     acl_users = root.acl_users
-    acl_users.manage_addProduct['PluggableAuthService'].addCookieAuthHelper('cookie_auth', 
-                                                                            cookie_name='__ac_silva')
+    add_product = acl_users.manage_addProduct['PluggableAuthService']
+    # Add cookie storage for auth
+    add_product.addCookieAuthHelper('cookie_auth', 
+                                    cookie_name='__ac_silva')
     acl_users.cookie_auth.login_path = 'silva_login_form.html'
-    acl_users.manage_addProduct['PluggableAuthService'].addZODBUserManager('users')
-    acl_users.manage_addProduct['PluggableAuthService'].addZODBRoleManager('roles')
+    # Add a user source
+    add_product.addZODBUserManager('users')
+    # Add a role source
+    add_product.addZODBRoleManager('roles')
 
     plugins = acl_users.plugins
     plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
@@ -78,11 +76,9 @@ def createDefaultSilvaRolesInPAS(plugin):
 
 def registerServiceMembers(root):
     root.manage_delObjects(['service_members'])
-    root.manage_addProduct['silva.pas.base'].manage_addMemberService(
-        'service_members')
+    add_product = root.manage_addProduct['silva.pas.base']
+    add_product.manage_addMemberService('service_members')
     
-
-
 
 
 if __name__ == '__main__':

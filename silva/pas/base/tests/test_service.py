@@ -28,6 +28,8 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         # First the extension should be installed
         service_extensions = root.service_extensions
         self.failUnless(service_extensions.is_installed('silva.pas.base'))
+        self.assertEqual(root.service_members.meta_type, 
+                         "Silva Pluggable Auth Service Member Service")
 
         # And a acl_users set 
         self.failUnless(hasattr(root.aq_base, 'acl_users'))
@@ -40,6 +42,16 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         pas_roles = set([p['id'] for p in pas_acl.roles.enumerateRoles()])
         expected_roles = set(['Owner',] + list(root.sec_get_roles()))
         self.assertEqual(pas_roles, expected_roles)
+
+
+    def test_20uninstall(self):
+        """Uninstall should work.
+        """
+        root = self.getRoot()
+        root.service_extensions.uninstall('silva.pas.base')
+        self.failIf(root.service_extensions.is_installed('silva.pas.base'))
+        self.assertEqual(root.service_members.meta_type, 
+                         "Silva Simple Member Service")
 
 
 
