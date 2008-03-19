@@ -1,3 +1,7 @@
+# Copyright (c) 2008 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
+
 from Products.Silva.install import add_helper, zpt_add_helper
 from Products.PluggableAuthService.interfaces.plugins import *
 
