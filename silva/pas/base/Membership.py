@@ -64,6 +64,20 @@ class MemberService(SimpleMemberService):
         return self._use_direct_lookup
 
 
+    def _cleanId(self, userid):
+        # This let OpenID work, since getUserName and getUserId are
+        # called indifferently in Silva, but doesn't refere to the
+        # same data.
+        id = urlparse.urlparse(userid)
+        if id[1]:
+            return id[1]
+        return userid
+
+    security.declareProtected(SilvaPermissions.AccessContentsInformation,
+                              'get_member')
+    def get_member(self, userid):
+        return SimpleMemberService.get_member(self, self._cleanId(userid))
+
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'is_user')
     def is_user(self, userid):
@@ -74,7 +88,10 @@ class MemberService(SimpleMemberService):
 
         root = self.get_root()
         pas = getattr(root, 'acl_users')
-        return (len(pas.searchUsers(exact_match=True, id=userid)) == 1)
+        # If you use the silva membership user enumerater, you can get
+        # more than one user found.
+        return (len(pas.searchUsers(exact_match=True, 
+                                    id=self._cleanId(userid))) > 0)
 
 
     security.declareProtected(SilvaPermissions.ApproveSilvaContent,
