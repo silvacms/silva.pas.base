@@ -18,10 +18,10 @@ from Products.Silva.SimpleMembership import SimpleMemberService
 from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthService
 
 import types
-import urlparse
 
 from zope.interface import implements
-from interfaces import IPASMemberService
+from zope.component import getUtilitiesFor
+from interfaces import IPASMemberService, IUserConverter
 
 
 class MemberService(SimpleMemberService):
@@ -65,13 +65,13 @@ class MemberService(SimpleMemberService):
 
 
     def _cleanId(self, userid):
-        # This let OpenID work, since getUserName and getUserId are
-        # called indifferently in Silva, but doesn't refere to the
-        # same data.
-        id = urlparse.urlparse(userid)
-        if id[1]:
-            return id[1]
-        return userid
+        for utility in getUtilitiesFor(IUserConverter):
+            converter = utility[1]()
+            if converter.match(userid):
+                return converter.convert(userid)
+        return userid           # No transformation, return the
+                                # default one.
+
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'get_member')
