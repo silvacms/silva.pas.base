@@ -116,7 +116,7 @@ class MemberService(SimpleMemberService):
         return result
 
     security.declarePublic('logout')
-    def logout(self, REQUEST=None):
+    def logout(self, came_from=None, REQUEST=None):
         """Logout the current user.
         """
         if REQUEST is None and hasattr(self, REQUEST):
@@ -127,8 +127,12 @@ class MemberService(SimpleMemberService):
         root = self.get_root()
         pas = getattr(root, 'acl_users')
         pas.resetCredentials(REQUEST, REQUEST.RESPONSE)
+        if came_from:
+            exit_url = came_from
+        else:
+            exit_url = root.absolute_url()
 
-        REQUEST.RESPONSE.redirect(root.absolute_url())
+        REQUEST.RESPONSE.redirect(exit_url)
 
 Globals.InitializeClass(MemberService)
 
