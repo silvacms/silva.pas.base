@@ -32,7 +32,7 @@ profile you use.
 
 After you can restart buildout::
 
-  ./bin/buildout
+  $ ./bin/buildout
 
 
 If you don't use buildout, you can install this extension using
@@ -41,8 +41,14 @@ If you don't use buildout, you can install this extension using
 ``/path/to/instance/etc/package-includes`` directory.  This file will
 responsible to load the extension and should only contain this::
 
-       <include package="silva.pas.base" />
+  <include package="silva.pas.base" />
 
+
+Latest version
+--------------
+
+The latest version is available in a `Subversion repository
+<https://svn.infrae.com/silva.pas.base/trunk#egg=silva.pas.base-dev>`_.
 
 
 .. _Infrae SVN: https://svn.infrae.com/buildout/silva/
