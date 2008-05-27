@@ -4,22 +4,23 @@
 
 from setuptools import setup, find_packages
 
-version = '0.1'
+version = '1.0'
 
 setup(name='silva.pas.base',
       version=version,
-      description="Base PAS support for Silva",
+      description="Base PluggableAuthService support for Silva",
       long_description=open("README.txt").read(),
       classifiers=[
         "Framework :: Zope2",
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "License :: OSI Approved :: BSD License",
         ], 
       keywords='pas silva',
       author='Sylvain Viollon',
       author_email='info@infrae.com',
       url='https://svn.infrae.com/silva.pas.base/trunk',
-      license='ZPL 2.1',
+      license='BSD',
       packages=find_packages(exclude=['ez_setup',]),
       namespace_packages=['silva', 'silva.pas'],
       include_package_data=True,
