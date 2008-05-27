@@ -9,7 +9,8 @@ version = '1.0'
 setup(name='silva.pas.base',
       version=version,
       description="Base PluggableAuthService support for Silva",
-      long_description=open("README.txt").read(),
+      long_description=open("README.txt").read() + "\n" +
+                       open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
         "Framework :: Zope2",
         "Programming Language :: Python",
