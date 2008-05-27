@@ -8,7 +8,7 @@ This package provides a new service for PluggableAuthService (PAS)
 integration in Silva. Installing it will also create a new PAS
 *acl_user* for the Silva Root, pre-configured to add users in it.
 
-This extension require at least Silva 2.0.7 or higher.
+This extension require at least `Silva`_ 2.0.7 or higher.
 
 Installation
 ------------
@@ -53,3 +53,4 @@ The latest version is available in a `Subversion repository
 
 .. _Infrae SVN: https://svn.infrae.com/buildout/silva/
 .. _Paster: https://svn.infrae.com/buildout/silva/INSTALL.txt
+.. _Silva: http://infrae.com/products/silva
