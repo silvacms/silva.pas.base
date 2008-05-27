@@ -1,1 +1,1 @@
-SilvaPAS 0.1 (SVN/unreleased)
+SilvaPAS 1.0
