@@ -38,11 +38,10 @@ def registerUserFolder(root):
 
     root.manage_addProduct['PluggableAuthService'].addPluggableAuthService()
     acl_users = root.acl_users
-    add_product = acl_users.manage_addProduct['PluggableAuthService']
+    add_product = acl_users.manage_addProduct['silva.pas.base']
     # Add cookie storage for auth
-    add_product.addCookieAuthHelper('cookie_auth', 
-                                    cookie_name='__ac_silva')
-    acl_users.cookie_auth.login_path = 'silva_login_form.html'
+    add_product.manage_addSilvaCookieAuthHelper('cookie_auth')
+    add_product = acl_users.manage_addProduct['PluggableAuthService']
     # Add a user source
     add_product.addZODBUserManager('users')
     # Add a role source
