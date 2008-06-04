@@ -5,6 +5,9 @@ $Id$
 silva.pas.base
 ==============
 
+1.1 (04/06/2008)
+----------------
+
 * Add a silva cookie auth helper which check that you type user and password,
 
 * Add feedback on the login page,
