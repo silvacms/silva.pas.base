@@ -3,16 +3,16 @@ See also LICENSE.txt
 $Id$
 
 silva.pas.base
-==============
+--------------
 
 1.1.1 (25/08/2008)
-------------------
+==================
 
 * Fix an error when you ask a member which doesn't exist and use the direct
   lookup mode in Silva. [sylvain]
 
 1.1 (04/06/2008)
-----------------
+================
 
 * Add a silva cookie auth helper which check that you type user and password,
 
@@ -22,7 +22,7 @@ silva.pas.base
 
 
 1.0 (27/05/2008)
-----------------
+================
 
 * Initial version
 
