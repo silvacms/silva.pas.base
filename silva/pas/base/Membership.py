@@ -84,7 +84,7 @@ class MemberService(SimpleMemberService):
         """Check if the given user is a PAS user.
         """
         if self.use_direct_lookup():
-            return True
+            return not (userid is None)
 
         root = self.get_root()
         pas = getattr(root, 'acl_users')
