@@ -34,7 +34,7 @@ class MemberService(SimpleMemberService):
 
     _use_direct_lookup = False
 
-    # ZMI configuration  
+    # ZMI configuration
 
     security.declareProtected('View management screens', 'manage_editForm')
     manage_editForm = PageTemplateFile(
@@ -90,19 +90,21 @@ class MemberService(SimpleMemberService):
         pas = getattr(root, 'acl_users')
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
-        return (len(pas.searchUsers(exact_match=True, 
+        return (len(pas.searchUsers(exact_match=True,
                                     id=self._cleanId(userid))) > 0)
 
 
     security.declareProtected(SilvaPermissions.ApproveSilvaContent,
                               'find_members')
-    def find_members(self, search_string):
+    def find_members(self, search_string, where=None):
         """Search for members
         """
         root = self.get_root()
-        pas = getattr(root, 'acl_users')
+        if where is None:
+            where = root
+        pas = getattr(where, 'acl_users')
         members = getattr(root, 'Members')
-        
+
         users = pas.searchUsers(id=search_string, exact_match=False)
         result = []
         for user in users:
@@ -112,7 +114,7 @@ class MemberService(SimpleMemberService):
                 members.manage_addProduct['Silva'].manage_addSimpleMember(id)
                 member = getattr(members, id)
             result.append(member.__of__(self))
-            
+
         return result
 
     security.declarePublic('logout')
@@ -123,7 +125,7 @@ class MemberService(SimpleMemberService):
             REQUEST = self.REQUEST
         if REQUEST is None:
             return
-        
+
         root = self.get_root()
         pas = getattr(root, 'acl_users')
         pas.resetCredentials(REQUEST, REQUEST.RESPONSE)

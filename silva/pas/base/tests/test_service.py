@@ -2,6 +2,9 @@
 # See also LICENSE.txt
 # $Id$
 
+from zope.interface.verify import verifyObject
+
+from Products.Silva import interfaces
 from Products.Silva.tests import SilvaTestCase
 from Products.Five import zcml
 
@@ -28,10 +31,11 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         # First the extension should be installed
         service_extensions = root.service_extensions
         self.failUnless(service_extensions.is_installed('silva.pas.base'))
-        self.assertEqual(root.service_members.meta_type, 
+        self.assertEqual(root.service_members.meta_type,
                          "Silva Pluggable Auth Service Member Service")
+        self.failUnless(verifyObject(interfaces.IMemberService, root.service_members))
 
-        # And a acl_users set 
+        # And a acl_users set
         self.failUnless(hasattr(root.aq_base, 'acl_users'))
         pas_acl = root.acl_users
         default_plugins = ['plugins', 'cookie_auth', 'users', 'roles', 'zope']
@@ -50,14 +54,14 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         root = self.getRoot()
         root.service_extensions.uninstall('silva.pas.base')
         self.failIf(root.service_extensions.is_installed('silva.pas.base'))
-        self.assertEqual(root.service_members.meta_type, 
+        self.assertEqual(root.service_members.meta_type,
                          "Silva Simple Member Service")
 
 
 
 import unittest
 def test_suite():
-    
+
     # Load Five ZCML
     from Products import Five
     zcml.load_config('meta.zcml', Five)
