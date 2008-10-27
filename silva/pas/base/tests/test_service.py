@@ -11,8 +11,8 @@ from Products.Five import zcml
 from Testing import ZopeTestCase as ztc
 
 
-class PASTestCase(SilvaTestCase.SilvaTestCase):
-    """Test case for PAS implementation.
+class PASInstallTestCase(SilvaTestCase.SilvaTestCase):
+    """Test case for PAS install/deinstall.
     """
 
 
@@ -22,7 +22,7 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         root = self.getRoot()
         root.service_extensions.install('silva.pas.base')
 
-    def test_00install(self):
+    def test_install(self):
         """Install should change the members services and set up an
         acl_user.
         """
@@ -48,7 +48,7 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         self.assertEqual(pas_roles, expected_roles)
 
 
-    def test_20uninstall(self):
+    def test_uninstall(self):
         """Uninstall should work.
         """
         root = self.getRoot()
@@ -57,6 +57,17 @@ class PASTestCase(SilvaTestCase.SilvaTestCase):
         self.assertEqual(root.service_members.meta_type,
                          "Silva Simple Member Service")
 
+
+
+class PASUserTestCase(SilvaTestCase.SilvaTestCase):
+    """Test case for PAS users.
+    """
+
+    def afterSetUp(self):
+        """After set up, install the extension.
+        """
+        root = self.getRoot()
+        root.service_extensions.install('silva.pas.base')
 
 
 import unittest
@@ -79,5 +90,6 @@ def test_suite():
 
     # Run tests
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(PASTestCase))
+    suite.addTest(unittest.makeSuite(PASInstallTestCase))
+    suite.addTest(unittest.makeSuite(PASUserTestCase))
     return suite

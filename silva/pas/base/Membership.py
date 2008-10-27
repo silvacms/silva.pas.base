@@ -73,21 +73,29 @@ class MemberService(SimpleMemberService):
                                 # default one.
 
 
+    def _getPAS(self, where=None):
+        if where is None:
+            where = self.get_root()
+        pas = getattr(where, 'acl_users')
+        if not IPluggableAuthService.providedBy(pas):
+            raise RuntimeError, "Expect to be used with a PAS acl user"
+        return pas
+
+
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'get_member')
-    def get_member(self, userid):
-        return SimpleMemberService.get_member(self, self._cleanId(userid))
+    def get_member(self, userid, where=None):
+        return super(MemberService, self).get_member(self._cleanId(userid), where=where)
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'is_user')
-    def is_user(self, userid):
+    def is_user(self, userid, where=None):
         """Check if the given user is a PAS user.
         """
         if self.use_direct_lookup():
             return not (userid is None)
 
-        root = self.get_root()
-        pas = getattr(root, 'acl_users')
+        pas = self._getPAS(where=where)
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
         return (len(pas.searchUsers(exact_match=True,
@@ -100,9 +108,7 @@ class MemberService(SimpleMemberService):
         """Search for members
         """
         root = self.get_root()
-        if where is None:
-            where = root
-        pas = getattr(where, 'acl_users')
+        pas = self._getPAS(where=where)
         members = getattr(root, 'Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
@@ -116,6 +122,7 @@ class MemberService(SimpleMemberService):
             result.append(member.__of__(self))
 
         return result
+
 
     security.declarePublic('logout')
     def logout(self, came_from=None, REQUEST=None):
@@ -136,11 +143,14 @@ class MemberService(SimpleMemberService):
 
         REQUEST.RESPONSE.redirect(exit_url)
 
+
 Globals.InitializeClass(MemberService)
+
 
 manage_addMemberServiceForm = PageTemplateFile(
     "www/memberServiceAdd", globals(),
     __name__='manage_addMemberServiceForm')
+
 
 def manage_addMemberService(self, id, REQUEST=None):
     """Add a Member Service."""
