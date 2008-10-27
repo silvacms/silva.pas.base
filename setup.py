@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.1.1'
+version = '1.2'
 
 setup(name='silva.pas.base',
       version=version,
@@ -17,7 +17,7 @@ setup(name='silva.pas.base',
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "License :: OSI Approved :: BSD License",
-        ], 
+        ],
       keywords='pas silva',
       author='Sylvain Viollon',
       author_email='info@infrae.com',

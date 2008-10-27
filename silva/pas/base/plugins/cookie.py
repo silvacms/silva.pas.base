@@ -24,7 +24,7 @@ def manage_addSilvaCookieAuthHelper(self, id, title='',
 
 
 
-manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm", 
+manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm",
                 globals(), __name__="manage_addSilvaCookieHelperForm")
 
 
@@ -37,10 +37,12 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
     cookie_name='__ac_silva'
     login_path = 'silva_login_form.html'
 
+
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
         """ Setup tasks upon instantiation """
         pass                    # Do nothing
+
 
     def unauthorized(self, extra=None):
         req = self.REQUEST
@@ -94,7 +96,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         else:
             pas_instance = self._getPAS()
             if pas_instance is not None:
-                pas_instance.updateCredentials(request, response, 
+                pas_instance.updateCredentials(request, response,
                                                login, password)
 
             came_from = request.form['came_from']
