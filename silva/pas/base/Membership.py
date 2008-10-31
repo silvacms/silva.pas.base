@@ -73,10 +73,10 @@ class MemberService(SimpleMemberService):
                                 # default one.
 
 
-    def _getPAS(self, where=None):
-        if where is None:
-            where = self.get_root()
-        pas = getattr(where, 'acl_users')
+    def _getPAS(self, location=None):
+        if location is None:
+            location = self.get_root()
+        pas = getattr(location, 'acl_users')
         if not IPluggableAuthService.providedBy(pas):
             raise RuntimeError, "Expect to be used with a PAS acl user"
         return pas
@@ -84,18 +84,18 @@ class MemberService(SimpleMemberService):
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'get_member')
-    def get_member(self, userid, where=None):
-        return super(MemberService, self).get_member(self._cleanId(userid), where=where)
+    def get_member(self, userid, location=None):
+        return super(MemberService, self).get_member(self._cleanId(userid), location=location)
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'is_user')
-    def is_user(self, userid, where=None):
+    def is_user(self, userid, location=None):
         """Check if the given user is a PAS user.
         """
         if self.use_direct_lookup():
             return not (userid is None)
 
-        pas = self._getPAS(where=where)
+        pas = self._getPAS(location=location)
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
         return (len(pas.searchUsers(exact_match=True,
@@ -104,11 +104,11 @@ class MemberService(SimpleMemberService):
 
     security.declareProtected(SilvaPermissions.ApproveSilvaContent,
                               'find_members')
-    def find_members(self, search_string, where=None):
+    def find_members(self, search_string, location=None):
         """Search for members
         """
         root = self.get_root()
-        pas = self._getPAS(where=where)
+        pas = self._getPAS(location=location)
         members = getattr(root, 'Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
