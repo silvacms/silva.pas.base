@@ -5,10 +5,11 @@ $Id$
 silva.pas.base
 --------------
 
-1.2 (unreleased)
+1.5 (unreleased)
 ================
 
 * Support for local users. [sylvain]
+
 
 1.1.1 (2008-08-25)
 ==================
