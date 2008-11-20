@@ -5,10 +5,10 @@ $Id$
 silva.pas.base
 ==============
 
-1.2 (unreleased)
+1.2 (2008-11-20)
 ----------------
 
-* Fix authentication validation in cookie helper.
+* Fix authentication validation in cookie helper. [sylvain]
 
 1.1.1 (2008-08-25)
 ------------------
