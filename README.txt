@@ -1,8 +1,5 @@
-Copyright (c) 2008, Infrae. All rights reserved.
-See also LICENSE.txt
-
-Silva PluggableAuthService Support
-----------------------------------
+silva.pas.base
+**************
 
 This package provides a new service for PluggableAuthService (PAS)
 integration in Silva. Installing it will also create a new PAS
@@ -11,7 +8,7 @@ integration in Silva. Installing it will also create a new PAS
 This extension require at least `Silva`_ 2.0.7 or higher.
 
 Installation
-------------
+============
 
 If you installed Silva using buildout, by getting one from the `Infrae
 SVN`_ repository, or creating one using `Paster`_, you should edit your
@@ -20,7 +17,7 @@ following section::
 
   [instance]
 
-  eggs = ... 
+  eggs = ...
         silva.pas.base
 
   zcml = ...
@@ -45,7 +42,7 @@ responsible to load the extension and should only contain this::
 
 
 Latest version
---------------
+==============
 
 The latest version is available in a `Subversion repository
 <https://svn.infrae.com/silva.pas.base/trunk#egg=silva.pas.base-dev>`_.
