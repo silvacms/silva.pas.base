@@ -2,6 +2,8 @@
 # See also LICENSE.txt
 # $Id$
 
+from Products.PluggableAuthService.PluggableAuthService import _SWALLOWABLE_PLUGIN_EXCEPTIONS
+from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin
 from Products.PluggableAuthService.plugins.CookieAuthHelper import CookieAuthHelper
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl.SecurityInfo import ClassSecurityInfo
@@ -24,7 +26,7 @@ def manage_addSilvaCookieAuthHelper(self, id, title='',
 
 
 
-manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm", 
+manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm",
                 globals(), __name__="manage_addSilvaCookieHelperForm")
 
 
@@ -37,10 +39,12 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
     cookie_name='__ac_silva'
     login_path = 'silva_login_form.html'
 
+
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
         """ Setup tasks upon instantiation """
         pass                    # Do nothing
+
 
     def unauthorized(self, extra=None):
         req = self.REQUEST
@@ -92,10 +96,23 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         if (not login) or (not password):
             return self.unauthorized(extra="You need to type a login and a password.")
         else:
+            creds = {'login': login, 'password': password,}
             pas_instance = self._getPAS()
             if pas_instance is not None:
-                pas_instance.updateCredentials(request, response, 
-                                               login, password)
+                plugins = pas_instance.plugins
+                authenticators = plugins.listPlugins(IAuthenticationPlugin)
+                for auth_id, auth in authenticators:
+                    try:
+                        uid_and_info = auth.authenticateCredentials(creds)
+                        if uid_and_info is None:
+                            continue
+                        user_id, info = uid_and_info
+                        if user_id is not None:
+                            pas_instance.updateCredentials(request, response,
+                                                           login, password)
+                            break
+                    except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                        continue
 
             came_from = request.form['came_from']
             return response.redirect(came_from)
