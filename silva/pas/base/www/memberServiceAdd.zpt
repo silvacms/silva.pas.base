@@ -9,31 +9,31 @@ Version of this file: $Revision: 1.1 $
     tal:replace="structure here/manage_form_title">Form Title</h2>
 
 <p class="form-help">
-Add Simple Member Service 
+Add Simple Member Service
 </p>
 
 <form action="manage_addMemberService" method="post">
 <table cellspacing="0" cellpadding="2" border="0">
   <tr>
     <td align="left" valign="top">
-    <div class="form-label">
-    Id
-    </div>
+      <div class="form-label">
+        Id
+      </div>
     </td>
     <td align="left" valign="top">
-    <input type="text" name="id" size="40" />
+      <input type="text" name="id" size="40" />
     </td>
   </tr>
   <tr>
     <td align="left" valign="top">
     </td>
     <td align="left" valign="top">
-    <div class="form-element">
-    <input class="form-element" type="submit" name="submit_add" 
-     value=" Add " /> 
-    <input class="form-element" type="submit" name="submit_edit" 
-     value=" Add and Edit " />
-    </div>
+      <div class="form-element">
+        <input class="form-element" type="submit" name="submit_add"
+               value=" Add " />
+        <input class="form-element" type="submit" name="submit_edit"
+               value=" Add and Edit " />
+      </div>
     </td>
   </tr>
 </table>

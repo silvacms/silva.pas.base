@@ -6,11 +6,13 @@ import install
 import Membership
 
 from Products.Silva.ExtensionRegistry import extensionRegistry
-from Products.PluggableAuthService.PluggableAuthService import registerMultiPlugin
+from Products.PluggableAuthService.PluggableAuthService import \
+    registerMultiPlugin
 from AccessControl.Permissions import manage_users as ManageUsers
-from plugins import cookie
+from plugins import cookie, cascading
 
 registerMultiPlugin(cookie.SilvaCookieAuthHelper.meta_type)
+registerMultiPlugin(cascading.SilvaCascadingPASPlugin.meta_type)
 
 def initialize(context):
     extensionRegistry.register(
@@ -27,6 +29,13 @@ def initialize(context):
         constructors=
         (cookie.manage_addSilvaCookieAuthHelperForm,
          cookie.manage_addSilvaCookieAuthHelper),
+        visibility=None)
+    context.registerClass(
+        cascading.SilvaCascadingPASPlugin,
+        permission=ManageUsers,
+        constructors=
+        (cascading.manage_addSilvaCascadingPASPluginForm,
+         cascading.manage_addSilvaCascadingPASPlugin),
         visibility=None)
 
 

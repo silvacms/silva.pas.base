@@ -3,15 +3,15 @@
   <body>
     <h1 tal:replace="structure here/manage_page_header">Header</h1>
 
-    <h2 tal:define="form_title string:Add Silva Cookie auth helper"
+    <h2 tal:define="form_title string:Add Silva cascading PAS plugin"
         tal:replace="structure here/manage_form_title">Form Title</h2>
 
     <p class="form-help">
-      This plugin let you manage cookie-based authentication in Silva,
-      using a login form.
+      This plugin let you search and authenticate users from an upper
+      PAS acl_user object.
     </p>
 
-    <form action="manage_addSilvaCookieAuthHelper" method="post">
+    <form action="manage_addSilvaCascadingPASPlugin" method="post">
       <table>
         <tr>
           <td class="form-label">Id</td>
@@ -22,9 +22,13 @@
           <td><input type="text" name="title"/></td>
         </tr>
         <tr>
+          <td class="form-label">Delegate PAS Path</td>
+          <td><input type="text" name="delegate_path"/></td>
+        </tr>
+        <tr>
           <td colspan="2">
             <div class="form-element">
-              <input type="submit" value="add silva cookie auth helper"/>
+              <input type="submit" value="add silva cascading pas plugin"/>
             </div>
           </td>
         </tr>

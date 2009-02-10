@@ -2,9 +2,12 @@
 # See also LICENSE.txt
 # $Id$
 
-from Products.PluggableAuthService.PluggableAuthService import _SWALLOWABLE_PLUGIN_EXCEPTIONS
-from Products.PluggableAuthService.interfaces.plugins import IAuthenticationPlugin
-from Products.PluggableAuthService.plugins.CookieAuthHelper import CookieAuthHelper
+from Products.PluggableAuthService.PluggableAuthService import \
+    _SWALLOWABLE_PLUGIN_EXCEPTIONS
+from Products.PluggableAuthService.interfaces.plugins import \
+    IAuthenticationPlugin
+from Products.PluggableAuthService.plugins.CookieAuthHelper import \
+    CookieAuthHelper
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Globals import InitializeClass
