@@ -12,13 +12,16 @@ def install(root):
     """
     # add login form
     add_helper(root, 'silva_login_form.html', globals(), zpt_add_helper, 0)
+    login_form = getattr(root, 'silva_login_form.html')
+    login_form.manage_permission('View', ('Anonymous',))
+    login_form.manage_permission('Access contents information', ('Anonymous',))
 
     # set up acl_users if needed
     registerUserFolder(root)
 
     # set up service_members if needed
     registerServiceMembers(root)
-    
+
 def uninstall(root):
     """Uninstall PAS Support.
     """
@@ -26,7 +29,7 @@ def uninstall(root):
     root.manage_delObjects(['service_members', 'silva_login_form.html'])
     add_product = root.manage_addProduct['Silva']
     add_product.manage_addSimpleMemberService('service_members')
-    
+
 def is_installed(root):
     return IPASMemberService.providedBy(root.service_members)
 
@@ -46,8 +49,8 @@ def registerUserFolder(root):
     add_product.addZODBUserManager('users')
     # Add a role source
     add_product.addZODBRoleManager('roles')
-    # Add a delegating source, to ask users to default Zope ACL 
-    add_product.manage_addDelegatingMultiPlugin('zope', 
+    # Add a delegating source, to ask users to default Zope ACL
+    add_product.manage_addDelegatingMultiPlugin('zope',
                                                 delegate_path='/acl_users')
 
     plugins = acl_users.plugins
@@ -71,7 +74,7 @@ def registerUserFolder(root):
 def createDefaultSilvaRolesInPAS(plugin):
     """Create default Silva roles in the roles assigner plugin.
     """
-    existing = [r['id'] for r in plugin.enumerateRoles()] 
+    existing = [r['id'] for r in plugin.enumerateRoles()]
     blacklist = ['Anonymous', 'Authenticated',]
     to_create = set(plugin.validRoles()).difference(existing + blacklist)
 
@@ -83,7 +86,6 @@ def registerServiceMembers(root):
     root.manage_delObjects(['service_members'])
     add_product = root.manage_addProduct['silva.pas.base']
     add_product.manage_addMemberService('service_members')
-    
 
 
 if __name__ == '__main__':

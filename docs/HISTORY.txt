@@ -6,6 +6,13 @@ Changelog
 
 * Support for local users. [sylvain]
 
+* Support cascading of PAS acl_users. Add a plugin which does look in
+  the parent one needed information to let people authenticate. It's
+  an extension of the SearchPrincipalPlugin. [sylvain]
+
+* Let Anonymous people access the login form by default (the acquired
+  permission might not be right). [sylvain]
+
 1.2 (2008-11-20)
 ----------------
 
