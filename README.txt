@@ -5,7 +5,8 @@ This package provides a new service for PluggableAuthService (PAS)
 integration in Silva. Installing it will also create a new PAS
 *acl_user* for the Silva Root, pre-configured to add users in it.
 
-This extension require at least `Silva`_ 2.0.7 or higher.
+This extension require at least `Silva`_ 2.1.2 or higher. For previous
+release of Silva, please use ``silva.pas.base`` 1.2.
 
 Installation
 ============
