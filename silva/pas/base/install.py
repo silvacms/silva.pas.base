@@ -7,11 +7,13 @@ from Products.PluggableAuthService.interfaces.plugins import *
 
 from interfaces import IPASMemberService
 
+
 def install(root):
     """Install PAS Support.
     """
     # add login form
-    add_helper(root, 'silva_login_form.html', globals(), zpt_add_helper, 0)
+    add_helper(root, 'silva_login_form.html',
+               globals(), zpt_add_helper, default_if_existent=1)
     login_form = getattr(root, 'silva_login_form.html')
     login_form.manage_permission('View', ('Anonymous',))
     login_form.manage_permission('Access contents information', ('Anonymous',))
@@ -22,13 +24,15 @@ def install(root):
     # set up service_members if needed
     registerServiceMembers(root)
 
+
 def uninstall(root):
     """Uninstall PAS Support.
     """
     # remove special member service and install default silva one
-    root.manage_delObjects(['service_members', 'silva_login_form.html'])
+    root.manage_delObjects(['service_members',])
     add_product = root.manage_addProduct['Silva']
     add_product.manage_addSimpleMemberService('service_members')
+
 
 def is_installed(root):
     return IPASMemberService.providedBy(root.service_members)

@@ -13,6 +13,9 @@ Changelog
 * Let Anonymous people access the login form by default (the acquired
   permission might not be right). [sylvain]
 
+* Don't delete the login_form when you reinstalled/refresh the
+  extension. [sylvain]
+
 1.2 (2008-11-20)
 ----------------
 

@@ -9,6 +9,16 @@ from Products.Silva.tests import SilvaTestCase
 from Products.Five import zcml
 
 from Testing import ZopeTestCase as ztc
+from Testing.ZopeTestCase.layer import onsetup as ZopeLiteLayerSetup
+
+@ZopeLiteLayerSetup
+def installPackage(name):
+    """This used to be executed at start time, but not anymore ...
+    (see Silva 2.2 test setup).
+
+    This is required for Zope 2.11.
+    """
+    ztc.installPackage(name)
 
 
 class PASInstallTestCase(SilvaTestCase.SilvaTestCase):
@@ -33,7 +43,8 @@ class PASInstallTestCase(SilvaTestCase.SilvaTestCase):
         self.failUnless(service_extensions.is_installed('silva.pas.base'))
         self.assertEqual(root.service_members.meta_type,
                          "Silva Pluggable Auth Service Member Service")
-        self.failUnless(verifyObject(interfaces.IMemberService, root.service_members))
+        self.failUnless(verifyObject(
+                interfaces.IMemberService, root.service_members))
 
         # And a acl_users set
         self.failUnless(hasattr(root.aq_base, 'acl_users'))
@@ -47,6 +58,9 @@ class PASInstallTestCase(SilvaTestCase.SilvaTestCase):
         expected_roles = set(['Owner',] + list(root.sec_get_roles()))
         self.assertEqual(pas_roles, expected_roles)
 
+        # We should have a login_form
+        self.failUnless(hasattr(root.aq_base, 'silva_login_form.html'))
+
 
     def test_uninstall(self):
         """Uninstall should work.
@@ -57,6 +71,26 @@ class PASInstallTestCase(SilvaTestCase.SilvaTestCase):
         self.assertEqual(root.service_members.meta_type,
                          "Silva Simple Member Service")
 
+        # However we keep the login form and acl_user object
+        self.failUnless(hasattr(root.aq_base, 'acl_users'))
+        self.failUnless(hasattr(root.aq_base, 'silva_login_form.html'))
+
+
+    def test_refresh(self):
+        """Refresh should work and keep the existing login form.
+        """
+        root = self.getRoot()
+        login_form = getattr(root.aq_base, 'silva_login_form.html')
+        login_form.write(u'Customized login form')
+        self.assertEqual(login_form.read(), u'Customized login form')
+        root.service_extensions.refresh('silva.pas.base')
+
+        # We should still have a login form, the default_login form,
+        # And the customization should be kept.
+        self.failUnless(hasattr(root.aq_base, 'silva_login_form.html'))
+        login_form = getattr(root.aq_base, 'silva_login_form.html')
+        self.assertEqual(login_form.read(), u'Customized login form')
+        self.failUnless(hasattr(root.aq_base, 'default_silva_login_form.html'))
 
 
 class PASUserTestCase(SilvaTestCase.SilvaTestCase):
@@ -73,6 +107,12 @@ class PASUserTestCase(SilvaTestCase.SilvaTestCase):
 import unittest
 def test_suite():
 
+    # Load the Zope Product
+    ztc.installProduct('GenericSetup')
+    ztc.installProduct('PluginRegistry')
+    ztc.installProduct('PluggableAuthService')
+    installPackage('silva.pas.base')
+
     # Load Five ZCML
     from Products import Five
     zcml.load_config('meta.zcml', Five)
@@ -81,12 +121,6 @@ def test_suite():
     # Load our ZCML, which add the extension as a Product
     from silva.pas import base
     zcml.load_config('configure.zcml', base)
-
-    # Load the Zope Product
-    ztc.installProduct('GenericSetup')
-    ztc.installProduct('PluginRegistry')
-    ztc.installProduct('PluggableAuthService')
-    ztc.installPackage('silva.pas.base')
 
     # Run tests
     suite = unittest.TestSuite()
