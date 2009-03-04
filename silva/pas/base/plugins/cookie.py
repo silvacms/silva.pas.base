@@ -69,6 +69,8 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                 if query:
                     if 'login_status' in query:
                         del query['login_status']
+                    keys, values = zip(*query.items())
+                    query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
                     came_from = mangle.urlencode(came_from, **query)
             else:
                 req_url = req.get('URL', '')
