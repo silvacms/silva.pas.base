@@ -16,6 +16,12 @@ Changelog
 * Don't delete the login_form when you reinstalled/refresh the
   extension. [sylvain]
 
+* Look for came_from in URL as well on logout. [sylvain]
+
+* Add a message on log out (so if you have a login page again, you
+  known you have been logged out). [sylvain]
+
+
 1.2 (2008-11-20)
 ----------------
 

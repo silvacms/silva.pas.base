@@ -9,7 +9,7 @@ from Acquisition import aq_base, aq_inner, aq_parent
 import Globals
 
 # Silva
-from Products.Silva import SilvaPermissions
+from Products.Silva import SilvaPermissions, mangle
 from Products.Silva.helpers import add_and_edit
 
 from Products.Silva.interfaces import IMember
@@ -136,11 +136,15 @@ class MemberService(SimpleMemberService):
         root = self.get_root()
         pas = getattr(root, 'acl_users')
         pas.resetCredentials(REQUEST, REQUEST.RESPONSE)
-        if came_from:
+        if came_from is None:
+            came_from = REQUEST.form.get('came_from', None)
+        if came_from is not None:
             exit_url = came_from
         else:
             exit_url = root.absolute_url()
 
+        exit_url = mangle.urlencode(
+            exit_url, login_status=u"You have been logged out.")
         REQUEST.RESPONSE.redirect(exit_url)
 
 

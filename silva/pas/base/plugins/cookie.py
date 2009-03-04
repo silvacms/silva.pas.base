@@ -9,6 +9,7 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from Products.PluggableAuthService.plugins.CookieAuthHelper import \
     CookieAuthHelper
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.Silva import mangle
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Globals import InitializeClass
 
@@ -49,7 +50,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         pass                    # Do nothing
 
 
-    def unauthorized(self, extra=None):
+    def unauthorized(self, login_status=None):
         req = self.REQUEST
         resp = req['RESPONSE']
 
@@ -64,20 +65,24 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
             if came_from is None:
                 came_from = req.get('URL', '')
-                query = req.get('QUERY_STRING')
+                query = req.form.copy()
                 if query:
-                    if not query.startswith('?'):
-                        query = '?' + query
-                    came_from = came_from + query
+                    if 'login_status' in query:
+                        del query['login_status']
+                    came_from = mangle.urlencode(came_from, **query)
             else:
                 req_url = req.get('URL', '')
 
                 if req_url and req_url == url:
                     return 0
 
-            url = url + '?came_from=%s' % quote(came_from)
-            if extra:
-                url = url + '&login_status=%s' % quote(extra)
+            options = {}
+            options['came_from'] = came_from
+            if login_status is None:
+                login_status = req.form.get('login_status', None)
+            if login_status is not None:
+                options['login_status'] = login_status
+            url = mangle.urlencode(url, **options)
             resp.redirect(url, lock=1)
             return 1
 
@@ -97,7 +102,8 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         password = request.get('__ac_password', '')
 
         if (not login) or (not password):
-            return self.unauthorized(extra="You need to type a login and a password.")
+            return self.unauthorized(
+                login_status=u"You need to type a login and a password.")
         else:
             creds = {'login': login, 'password': password,}
             pas_instance = self._getPAS()
