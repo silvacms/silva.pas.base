@@ -70,9 +70,10 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     for bad in ['login_status', '-C']:
                         if bad in query:
                             del query[bad]
-                    keys, values = zip(*query.items())
-                    query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
-                    came_from = mangle.urlencode(came_from, **query)
+                    if query:
+                        keys, values = zip(*query.items())
+                        query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
+                        came_from = mangle.urlencode(came_from, **query)
             else:
                 req_url = req.get('URL', '')
 
