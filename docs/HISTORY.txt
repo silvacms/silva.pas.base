@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.5 (unreleased)
+1.5 (2009-03-05)
 ----------------
 
 * Support for local users. [sylvain]
@@ -50,13 +50,13 @@ Changelog
 
 
 1.1.1 (2008-08-25)
------------------
+------------------
 
 * Fix an error when you ask a member which doesn't exist and use the direct
   lookup mode in Silva. [sylvain]
 
 1.1 (2008-06-04)
----------------
+----------------
 
 * Add a silva cookie auth helper which check that you type user and password,
 

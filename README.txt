@@ -18,10 +18,10 @@ following section::
 
   [instance]
 
-  eggs = ...
+  eggs += 
         silva.pas.base
 
-  zcml = ...
+  zcml += 
         silva.pas.base
 
 If the section ``instance`` wasn't already in the configuration file,
