@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.6'
+version = '1.5.1'
 
 setup(name='silva.pas.base',
       version=version,

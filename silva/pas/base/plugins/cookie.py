@@ -13,8 +13,6 @@ from Products.Silva import mangle
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Globals import InitializeClass
 
-from urllib import quote
-
 def manage_addSilvaCookieAuthHelper(self, id, title='',
                                     REQUEST=None, **kw):
     """Create an instance of an Silva cookie auth helper.

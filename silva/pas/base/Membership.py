@@ -2,26 +2,23 @@
 # See also LICENSE.txt
 # $Id$
 
+import urllib
+
 # Zope
 from AccessControl import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Acquisition import aq_base, aq_inner, aq_parent
 import Globals
 
 # Silva
 from Products.Silva import SilvaPermissions, mangle
 from Products.Silva.helpers import add_and_edit
-
-from Products.Silva.interfaces import IMember
 from Products.Silva.SimpleMembership import SimpleMemberService
 
 from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthService
 
-import types
-
 from zope.interface import implements
 from zope.component import getUtilitiesFor
-from interfaces import IPASMemberService, IUserConverter
+from silva.pas.base.interfaces import IPASMemberService, IUserConverter
 
 
 class MemberService(SimpleMemberService):
@@ -138,6 +135,8 @@ class MemberService(SimpleMemberService):
         pas.resetCredentials(REQUEST, REQUEST.RESPONSE)
         if came_from is None:
             came_from = REQUEST.form.get('came_from', None)
+            if came_from:
+                came_from = urllib.unquote(came_from)
         if came_from is not None:
             exit_url = came_from
         else:

@@ -1,10 +1,11 @@
 Changelog
 =========
 
-1.6 (unreleased)
+1.5.1 (unreleased)
 ----------------
 
-* ...
+* Always unquote came_from when it's fetched from the request in the
+  logout link. Some proxy requote it more. [sylvain]
 
 1.5 (2009-03-05)
 ----------------
