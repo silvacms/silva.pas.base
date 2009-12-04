@@ -13,6 +13,11 @@ from Products.Silva import mangle
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Globals import InitializeClass
 
+from zope.datetime import rfc1123_date
+from base64 import encodestring
+from urllib import quote
+import time
+
 def manage_addSilvaCookieAuthHelper(self, id, title='',
                                     REQUEST=None, **kw):
     """Create an instance of an Silva cookie auth helper.
@@ -40,7 +45,11 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
     # Customize configuration
     cookie_name='__ac_silva'
     login_path = 'silva_login_form.html'
-
+    lifetime = 12 * 3600
+    _properties = CookieAuthHelper._properties + ({'id'    : 'lifetime',
+                                                   'label' : 'Life time (sec)',
+                                                   'type'  : 'int',
+                                                   'mode'  : 'w'},)
 
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
@@ -91,6 +100,15 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         # Could not challenge.
         return 0
 
+    security.declarePrivate('updateCredentials')
+    def updateCredentials(self, request, response, login, new_password):
+        """ Respond to change of credentials (NOOP for basic auth). """
+        cookie_str = '%s:%s' % (login.encode('hex'), new_password.encode('hex'))
+        cookie_val = encodestring(cookie_str)
+        cookie_val = cookie_val.rstrip()
+        expires = rfc1123_date(time.time() + self.lifetime)
+        response.setCookie(self.cookie_name, quote(cookie_val), path='/',
+            expires=expires)
 
     security.declarePublic('login')
     def login(self):
