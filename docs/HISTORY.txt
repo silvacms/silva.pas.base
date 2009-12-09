@@ -1,10 +1,10 @@
 Changelog
 =========
 
-1.6 (unreleased)
-----------------
+1.5.2 (2009-12-09)
+------------------
 
-* ...
+* Set a lifetime to the cookie set by SilvaCookieAuthHelper. [antonin]
 
 1.5.1 (2009-03-20)
 ------------------
