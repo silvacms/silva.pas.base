@@ -82,7 +82,8 @@ class MemberService(SimpleMemberService):
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'get_member')
     def get_member(self, userid, location=None):
-        return super(MemberService, self).get_member(self._cleanId(userid), location=location)
+        return super(MemberService, self).get_member(
+            self._cleanId(userid), location=location)
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'is_user')

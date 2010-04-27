@@ -94,7 +94,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
             if login_status is not None:
                 options['login_status'] = login_status
             url = mangle.urlencode(url, **options)
-            resp.redirect(url, lock=1)
+            resp.redirect(url)
             return 1
 
         # Could not challenge.
