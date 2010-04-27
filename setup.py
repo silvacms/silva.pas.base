@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.5.3dev'
+version = '1.6dev'
 
 setup(name='silva.pas.base',
       version=version,
@@ -27,9 +27,10 @@ setup(name='silva.pas.base',
       namespace_packages=['silva', 'silva.pas'],
       include_package_data=True,
       zip_safe=False,
-      install_requires=["Products.PluggableAuthService >= 1.5.0",
-                        "Products.GenericSetup >= 1.3.0, < 1.3.999",
-                        "setuptools"],
+      install_requires=[
+        "Products.PluggableAuthService >= 1.5.0",
+        "Products.GenericSetup > 1.4dev",
+        "setuptools"],
       )
 
 
