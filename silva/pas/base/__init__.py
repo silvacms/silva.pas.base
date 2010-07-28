@@ -2,27 +2,21 @@
 # See also LICENSE.txt
 # $Id$
 
-import install
-import Membership
+from silva.pas.base import install
+from silva.pas.base.plugins import cookie, cascading
+from silva.core import conf as silvaconf
 
-from Products.Silva.ExtensionRegistry import extensionRegistry
 from Products.PluggableAuthService.PluggableAuthService import \
     registerMultiPlugin
 from AccessControl.Permissions import manage_users as ManageUsers
-from plugins import cookie, cascading
 
 registerMultiPlugin(cookie.SilvaCookieAuthHelper.meta_type)
 registerMultiPlugin(cascading.SilvaCascadingPASPlugin.meta_type)
 
+silvaconf.extensionName('silva.pas.base')
+silvaconf.extensionTitle('Silva Pluggable Auth Service Support')
+
 def initialize(context):
-    extensionRegistry.register(
-        'silva.pas.base', 'Silva Pluggable Auth Service Support', context, [],
-        install, depends_on='Silva')
-    context.registerClass(
-        Membership.MemberService,
-        constructors = (Membership.manage_addMemberServiceForm,
-                        Membership.manage_addMemberService),
-        )
     context.registerClass(
         cookie.SilvaCookieAuthHelper,
         permission=ManageUsers,

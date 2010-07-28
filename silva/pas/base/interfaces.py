@@ -3,7 +3,8 @@
 # $Id$
 
 from zope.interface import Interface
-from Products.Silva.interfaces import IMemberService
+from silva.core.interfaces.service import IMemberService
+
 
 class IPASMemberService(IMemberService):
     """Mark PAS Service Membership.

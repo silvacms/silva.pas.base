@@ -20,15 +20,21 @@ from Products.PluggableAuthService.interfaces.authservice import \
 from zope.interface import implements
 from zope.component import getUtilitiesFor
 from silva.pas.base.interfaces import IPASMemberService, IUserConverter
+from silva.core import conf as silvaconf
 
 
 class MemberService(SimpleMemberService):
+    """Silva Member Service who delagates members search to PAS.
+    """
     security = ClassSecurityInfo()
-
     implements(IPASMemberService)
 
     meta_type = 'Silva Pluggable Auth Service Member Service'
     title = 'Silva Pluggable Auth Service Membership Service'
+
+    silvaconf.icon('www/members.png')
+    silvaconf.factory('manage_addMemberServiceForm')
+    silvaconf.factory('manage_addMemberService')
 
     _use_direct_lookup = False
 
@@ -158,7 +164,8 @@ manage_addMemberServiceForm = PageTemplateFile(
 
 
 def manage_addMemberService(self, id, REQUEST=None):
-    """Add a Member Service."""
+    """Add a Member Service.
+    """
     object = MemberService(id)
     self._setObject(id, object)
     add_and_edit(self, id, REQUEST)
