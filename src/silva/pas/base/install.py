@@ -5,7 +5,7 @@
 from Products.Silva.install import add_helper, zpt_add_helper
 from Products.PluggableAuthService.interfaces.plugins import *
 
-from interfaces import IPASMemberService
+from silva.pas.base.interfaces import IPASMemberService
 
 
 def install(root):
