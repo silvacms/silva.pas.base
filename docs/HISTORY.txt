@@ -4,7 +4,10 @@ Changelog
 1.6.0 (unreleased)
 ------------------
 
-* ...
+* Update code to use Zope 2.12.
+
+* Remove deprecation under Silva 2.3. This is now the required minimal
+  version. We now use Grok to register ourselves.
 
 1.5.2 (2009-12-09)
 ------------------
