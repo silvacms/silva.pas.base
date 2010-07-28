@@ -8,33 +8,15 @@ from Products.PluggableAuthService.plugins.SearchPrincipalsPlugin import \
     SearchPrincipalsPlugin
 from Products.PluggableAuthService.interfaces.plugins import \
     IAuthenticationPlugin, IRolesPlugin, IGroupsPlugin, IPropertiesPlugin
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+
 from AccessControl.SecurityInfo import ClassSecurityInfo
-from Globals import InitializeClass
-
-
-def manage_addSilvaCascadingPASPlugin(self, id, title='',
-                                      delegate_path='',
-                                      REQUEST=None, **kw):
-    """Create an instance of an Silva cascading PAS plugin.
-    """
-
-    o = SilvaCascadingPASPlugin(id, title, delegate_path, **kw)
-    self._setObject(o.getId(), o)
-
-    if REQUEST is not None:
-        REQUEST["RESPONSE"].redirect("%s/manage_workspace"
-                "?manage_tabs_message=Silva+cascading+PAS+plugin+added." %
-                self.absolute_url())
-
-
-manage_addSilvaCascadingPASPluginForm =  \
-    PageTemplateFile("../www/cascadingAddForm", globals(),
-                     __name__="manage_addSilvaCascadingPASPluginForm")
+from App.class_init import InitializeClass
+from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 
 class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
-
+    """Look for information in others PAS acl_users.
+    """
     meta_type = 'Silva Cascading PAS Plugin'
     security = ClassSecurityInfo()
 
@@ -110,5 +92,23 @@ class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
 
 InitializeClass(SilvaCascadingPASPlugin)
 
+
+manage_addSilvaCascadingPASPluginForm =  PageTemplateFile(
+    "../www/cascadingAddForm",
+    globals(),
+    __name__="manage_addSilvaCascadingPASPluginForm")
+
+
+def manage_addSilvaCascadingPASPlugin(
+    self, id, title='', delegate_path='', REQUEST=None, **kw):
+    """Create an instance of an Silva cascading PAS plugin.
+    """
+    plugin = SilvaCascadingPASPlugin(id, title, delegate_path, **kw)
+    self._setObject(plugin.getId(), plugin)
+
+    if REQUEST is not None:
+        REQUEST["RESPONSE"].redirect("%s/manage_workspace"
+                "?manage_tabs_message=Silva+cascading+PAS+plugin+added." %
+                self.absolute_url())
 
 

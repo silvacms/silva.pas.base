@@ -2,39 +2,23 @@
 # See also LICENSE.txt
 # $Id$
 
+from base64 import encodestring
+from urllib import quote
+import time
+
+from AccessControl.SecurityInfo import ClassSecurityInfo
+from App.class_init import InitializeClass
+from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.Silva import mangle
+
 from Products.PluggableAuthService.PluggableAuthService import \
     _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from Products.PluggableAuthService.interfaces.plugins import \
     IAuthenticationPlugin
 from Products.PluggableAuthService.plugins.CookieAuthHelper import \
     CookieAuthHelper
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.Silva import mangle
-from AccessControl.SecurityInfo import ClassSecurityInfo
-from Globals import InitializeClass
 
 from zope.datetime import rfc1123_date
-from base64 import encodestring
-from urllib import quote
-import time
-
-def manage_addSilvaCookieAuthHelper(self, id, title='',
-                                    REQUEST=None, **kw):
-    """Create an instance of an Silva cookie auth helper.
-    """
-
-    o = SilvaCookieAuthHelper(id, title, **kw)
-    self._setObject(o.getId(), o)
-
-    if REQUEST is not None:
-        REQUEST["RESPONSE"].redirect("%s/manage_workspace"
-                "?manage_tabs_message=Silva+cookie+auth+helper+plugin+added." %
-                self.absolute_url())
-
-
-
-manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm",
-                globals(), __name__="manage_addSilvaCookieHelperForm")
 
 
 class SilvaCookieAuthHelper(CookieAuthHelper):
@@ -149,3 +133,21 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
 InitializeClass(SilvaCookieAuthHelper)
 
+
+manage_addSilvaCookieAuthHelperForm =  PageTemplateFile(
+    "../www/cookieAddForm",
+    globals(),
+    __name__="manage_addSilvaCookieHelperForm")
+
+
+def manage_addSilvaCookieAuthHelper(
+    self, id, title='', REQUEST=None, **kw):
+    """Create an instance of an Silva cookie auth helper.
+    """
+    plugin = SilvaCookieAuthHelper(id, title, **kw)
+    self._setObject(plugin.getId(), plugin)
+
+    if REQUEST is not None:
+        REQUEST["RESPONSE"].redirect("%s/manage_workspace"
+                "?manage_tabs_message=Silva+cookie+auth+helper+plugin+added." %
+                self.absolute_url())

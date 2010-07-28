@@ -6,15 +6,16 @@ import urllib
 
 # Zope
 from AccessControl import ClassSecurityInfo
+from App.class_init import InitializeClass
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-import Globals
 
 # Silva
 from Products.Silva import SilvaPermissions, mangle
 from Products.Silva.helpers import add_and_edit
 from Products.Silva.SimpleMembership import SimpleMemberService
 
-from Products.PluggableAuthService.interfaces.authservice import IPluggableAuthService
+from Products.PluggableAuthService.interfaces.authservice import \
+    IPluggableAuthService
 
 from zope.interface import implements
 from zope.component import getUtilitiesFor
@@ -148,7 +149,7 @@ class MemberService(SimpleMemberService):
         REQUEST.RESPONSE.redirect(exit_url)
 
 
-Globals.InitializeClass(MemberService)
+InitializeClass(MemberService)
 
 
 manage_addMemberServiceForm = PageTemplateFile(
