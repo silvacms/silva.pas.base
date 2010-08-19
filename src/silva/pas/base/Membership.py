@@ -11,7 +11,6 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 # Silva
 from Products.Silva import SilvaPermissions, mangle
-from Products.Silva.helpers import add_and_edit
 from Products.Silva.SimpleMembership import SimpleMemberService
 
 from Products.PluggableAuthService.interfaces.authservice import \
@@ -33,8 +32,6 @@ class MemberService(SimpleMemberService):
     title = 'Silva Pluggable Auth Service Membership Service'
 
     silvaconf.icon('www/members.png')
-    silvaconf.factory('manage_addMemberServiceForm')
-    silvaconf.factory('manage_addMemberService')
 
     _use_direct_lookup = False
 
@@ -68,7 +65,7 @@ class MemberService(SimpleMemberService):
         return self._use_direct_lookup
 
 
-    def _cleanId(self, userid):
+    def _clean_id(self, userid):
         for utility in getUtilitiesFor(IUserConverter):
             converter = utility[1]()
             if converter.match(userid):
@@ -90,7 +87,7 @@ class MemberService(SimpleMemberService):
                               'get_member')
     def get_member(self, userid, location=None):
         return super(MemberService, self).get_member(
-            self._cleanId(userid), location=location)
+            self._clean_id(userid), location=location)
 
     security.declareProtected(SilvaPermissions.AccessContentsInformation,
                               'is_user')
@@ -104,7 +101,7 @@ class MemberService(SimpleMemberService):
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
         return (len(pas.searchUsers(exact_match=True,
-                                    id=self._cleanId(userid))) > 0)
+                                    id=self._clean_id(userid))) > 0)
 
 
     security.declareProtected(SilvaPermissions.ApproveSilvaContent,
@@ -156,17 +153,3 @@ class MemberService(SimpleMemberService):
 
 
 InitializeClass(MemberService)
-
-
-manage_addMemberServiceForm = PageTemplateFile(
-    "www/memberServiceAdd", globals(),
-    __name__='manage_addMemberServiceForm')
-
-
-def manage_addMemberService(self, id, REQUEST=None):
-    """Add a Member Service.
-    """
-    object = MemberService(id)
-    self._setObject(id, object)
-    add_and_edit(self, id, REQUEST)
-    return ''
