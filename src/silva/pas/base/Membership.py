@@ -7,74 +7,54 @@ import urllib
 # Zope
 from AccessControl import ClassSecurityInfo
 from App.class_init import InitializeClass
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 # Silva
 from Products.Silva import SilvaPermissions, mangle
 from Products.Silva.SimpleMembership import SimpleMemberService
-
 from Products.PluggableAuthService.interfaces.authservice import \
     IPluggableAuthService
 
-from zope.interface import implements
-from zope.component import getUtilitiesFor
-from silva.pas.base.interfaces import IPASMemberService, IUserConverter
+from five import grok
 from silva.core import conf as silvaconf
+from silva.core.views import views as silvaviews
+from silva.pas.base.interfaces import IPASMemberService, IUserConverter
+from zope.component import getUtilitiesFor
+
+
+class SilvaGroup(object):
+
+    def __init__(self, groupid, groupname):
+        self.__groupid = groupid
+        self.__groupname = groupname
+
+    def groupid(self):
+        return self.__groupid
+
+    def groupname(self):
+        return self.__groupname
+
 
 
 class MemberService(SimpleMemberService):
     """Silva Member Service who delagates members search to PAS.
     """
     security = ClassSecurityInfo()
-    implements(IPASMemberService)
+    grok.implements(IPASMemberService)
 
     meta_type = 'Silva Pluggable Auth Service Member Service'
     title = 'Silva Pluggable Auth Service Membership Service'
 
-    silvaconf.icon('www/members.png')
+    silvaconf.icon('Membership.png')
 
-    _use_direct_lookup = False
-
-    # ZMI configuration
-
-    security.declareProtected('View management screens', 'manage_editForm')
-    manage_editForm = PageTemplateFile(
-        'www/memberServiceEdit', globals(),  __name__='manage_editForm')
-
-
-    security.declareProtected('View management screens',
-                              'manage_editServiceSettings')
-    def manage_editServiceSettings(self, REQUEST):
-        """manage method to edit service settings"""
-        allow_auth_requests = int(REQUEST['allow_authentication_requests'])
-        self.set_allow_authentication_requests(allow_auth_requests)
-        self.set_use_direct_lookup(int(REQUEST['use_direct_lookup']))
-        return self.manage_editForm(manage_tabs_message='Changed settings')
-
-
-    security.declareProtected(SilvaPermissions.ChangeSilvaAccess,
-                              'set_use_direct_lookup')
-    def set_use_direct_lookup(self, value):
-        """sets use_direct_lookup"""
-        self._use_direct_lookup = value
-
-
-    security.declareProtected(SilvaPermissions.ReadSilvaContent,
-                              'use_direct_lookup')
-    def use_direct_lookup(self):
-        return self._use_direct_lookup
-
-
-    def _clean_id(self, userid):
-        for utility in getUtilitiesFor(IUserConverter):
-            converter = utility[1]()
+    def _convert_userid(self, userid):
+        for name, utility in getUtilitiesFor(IUserConverter):
+            converter = utility()
             if converter.match(userid):
                 return converter.convert(userid)
         return userid           # No transformation, return the
                                 # default one.
 
-
-    def _getPAS(self, location=None):
+    def _get_pas(self, location=None):
         if location is None:
             location = self.get_root()
         pas = getattr(location, 'acl_users')
@@ -82,35 +62,33 @@ class MemberService(SimpleMemberService):
             raise RuntimeError, "Expect to be used with a PAS acl user"
         return pas
 
-
-    security.declareProtected(SilvaPermissions.AccessContentsInformation,
-                              'get_member')
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'get_member')
     def get_member(self, userid, location=None):
         return super(MemberService, self).get_member(
-            self._clean_id(userid), location=location)
+            self._convert_userid(userid), location=location)
 
-    security.declareProtected(SilvaPermissions.AccessContentsInformation,
-                              'is_user')
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'is_user')
     def is_user(self, userid, location=None):
         """Check if the given user is a PAS user.
         """
         if self.use_direct_lookup():
             return not (userid is None)
 
-        pas = self._getPAS(location=location)
+        pas = self._get_pas(location=location)
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
-        return (len(pas.searchUsers(exact_match=True,
-                                    id=self._clean_id(userid))) > 0)
+        return (len(pas.searchUsers(
+                    exact_match=True, id=self._convert_userid(userid))) > 0)
 
-
-    security.declareProtected(SilvaPermissions.ApproveSilvaContent,
-                              'find_members')
+    security.declareProtected(
+        SilvaPermissions.ApproveSilvaContent, 'find_members')
     def find_members(self, search_string, location=None):
         """Search for members
         """
         root = self.get_root()
-        pas = self._getPAS(location=location)
+        pas = self._get_pas(location=location)
         members = getattr(root, 'Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
@@ -125,6 +103,17 @@ class MemberService(SimpleMemberService):
 
         return result
 
+    security.declareProtected(
+        SilvaPermissions.ApproveSilvaContent, 'find_members')
+    def find_groups(self, search_string, location=None):
+        """Search for members
+        """
+        pas = self._get_pas(location=location)
+        groups = pas.searchGroups(id=search_string, exact_match=False)
+        result = []
+        for group in groups:
+            result.append(SilvaGroup(group['groupid'], group['title']))
+        return result
 
     security.declarePublic('logout')
     def logout(self, came_from=None, REQUEST=None):
@@ -153,3 +142,7 @@ class MemberService(SimpleMemberService):
 
 
 InitializeClass(MemberService)
+
+
+class LoginPage(silvaviews.Page):
+    grok.name('silva_login_form.html')

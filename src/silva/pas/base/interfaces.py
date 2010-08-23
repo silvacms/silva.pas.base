@@ -3,7 +3,7 @@
 # $Id$
 
 from zope.interface import Interface
-from silva.core.interfaces.service import IMemberService
+from silva.core.services.interfaces import IMemberService
 
 
 class IPASMemberService(IMemberService):
@@ -24,7 +24,3 @@ class IUserConverter(Interface):
     def convert(userid):
         """Return the converted userid.
         """
-
-
-
-

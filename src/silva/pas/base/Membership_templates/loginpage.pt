@@ -1,0 +1,44 @@
+<div class="login-form"
+     i18n:domain="silva">
+  <h2 i18n:translate="">Log in with an existing account</h2>
+
+  <p style="color: red; font-weight: bold"
+     tal:condition="request/login_status | nothing"
+     tal:content="request/login_status">
+    Status
+  </p>
+  <p tal:condition="not: request/login_status|nothing"
+     i18n:translate="">
+    The page you are trying to access is protected. Authenticate
+    yourself and the access may be granted to you !
+  </p>
+
+  <form method="post" action="#"
+        tal:attributes="action request/action">
+
+    <input type="hidden" name="came_from" value=""
+           tal:attributes="value request/came_from | string:"/>
+    <input type="hidden" name="__ac_secret" value=""
+           tal:attributes="value request/secret | string:"/>
+    <table cellpadding="2">
+      <tr>
+        <td><label for="name" i18n:translate="">Login</label></td>
+        <td><input type="text"  size="30"
+                   id="name" name="__ac_name" /></td>
+      </tr>
+      <tr>
+        <td><label for="password" i18n:translate="">Password</label></td>
+        <td><input type="password"  size="30"
+                   id="password" name="__ac_password" /></td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <br />
+          <input type="submit" value="Log In"
+                 i18n:attributes="value" />
+        </td>
+      </tr>
+    </table>
+
+  </form>
+</div>

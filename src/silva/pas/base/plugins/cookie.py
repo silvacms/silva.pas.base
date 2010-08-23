@@ -2,9 +2,11 @@
 # See also LICENSE.txt
 # $Id$
 
-from base64 import encodestring
-from urllib import quote
+from urllib import quote, unquote
 import time
+import hmac
+import os
+import hashlib
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
@@ -18,7 +20,20 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from Products.PluggableAuthService.plugins.CookieAuthHelper import \
     CookieAuthHelper
 
+from zope import component
 from zope.datetime import rfc1123_date
+from silva.core.views.interfaces import IVirtualSite
+from silva.core.cache.store import SessionStore
+
+
+def create_secret(request, *args):
+    challenge = hmac.new(
+        str(os.urandom(8*8)),
+        str(request.SESSION.id),
+        hashlib.sha1)
+    for arg in args:
+        challenge.update(str(args))
+    return challenge.hexdigest()
 
 
 class SilvaCookieAuthHelper(CookieAuthHelper):
@@ -28,71 +43,110 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
     # Customize configuration
     cookie_name='__ac_silva'
-    login_path = 'silva_login_form.html'
+    login_path = '@@silva_login_form.html'
     lifetime = 12 * 3600
-    _properties = CookieAuthHelper._properties + ({'id'    : 'lifetime',
-                                                   'label' : 'Life time (sec)',
-                                                   'type'  : 'int',
-                                                   'mode'  : 'w'},)
+    _properties = CookieAuthHelper._properties + (
+        {'id'    : 'lifetime',
+         'label' : 'Life time (sec)',
+         'type'  : 'int',
+         'mode'  : 'w'},)
 
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
         """ Setup tasks upon instantiation """
         pass                    # Do nothing
 
+    def _get_login_page(self, request):
+        root = IVirtualSite(request).get_root()
+        page = component.queryMultiAdapter(
+            (root, request), name=self.login_path)
+        if page is not None:
+            page.__parent__ = root
+        return page
+
+    def _get_session(self, request):
+        return SessionStore(request, region='auth')
 
     def unauthorized(self, login_status=None):
-        req = self.REQUEST
-        resp = req['RESPONSE']
+        request = self.REQUEST
+        response = request['RESPONSE']
 
         # If we set the auth cookie before, delete it now.
-        if resp.cookies.has_key(self.cookie_name):
-            del resp.cookies[self.cookie_name]
+        if response.cookies.has_key(self.cookie_name):
+            del response.cookies[self.cookie_name]
 
-        # Redirect if desired.
-        url = self.getLoginURL()
-        if url is not None:
-            came_from = req.get('came_from', None)
+        # Get the login page.
+        page = self._get_login_page(request)
+        if page is None:
+            return 0
+        came_from = request.get('came_from', None)
 
-            if came_from is None:
-                came_from = req.get('URL', '')
-                query = req.form.copy()
-                if query:
-                    for bad in ['login_status', '-C']:
-                        if bad in query:
-                            del query[bad]
-                    if query:
-                        keys, values = zip(*query.items())
-                        query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
-                        came_from = mangle.urlencode(came_from, **query)
-            else:
-                req_url = req.get('URL', '')
+        if came_from is None:
+            came_from = request.get('URL', '')
+            query = request.form.copy()
+            if query:
+                for bad in ['login_status', '-C']:
+                    if bad in query:
+                        del query[bad]
+            if query:
+                encode = lambda v: v.encode('ascii', 'xmlcharrefreplace')
+                keys, values = zip(*query.items())
+                query = dict(zip(keys, map(encode, values)))
+                came_from = mangle.urlencode(came_from, **query)
 
-                if req_url and req_url == url:
-                    return 0
+        secret = create_secret(request, came_from)
+        session = self._get_session(request)
+        session.set('secret', secret)
 
-            options = {}
-            options['came_from'] = came_from
-            if login_status is None:
-                login_status = req.form.get('login_status', None)
-            if login_status is not None:
-                options['login_status'] = login_status
-            url = mangle.urlencode(url, **options)
-            resp.redirect(url)
-            return 1
+        options = {}
+        options['secret'] = secret
+        options['action'] = self.absolute_url() + '/login'
+        options['came_from'] = came_from
+        if login_status is None:
+            login_status = request.form.get('login_status', None)
+        if login_status is not None:
+            options['login_status'] = login_status
 
-        # Could not challenge.
-        return 0
+        # XXX Need to make sure you can't render the view without
+        # passing through that code before as its that code who set
+        # the form action
+        request.form = options
+        # It is not very nice but we don't have lot of choice.
+        response.setStatus(401)
+        response.write(page())
+        return 1
+
+    security.declarePrivate('extractCredentials')
+    def extractCredentials(self, request):
+        """ Extract credentials from cookie or 'request'. """
+        credentials = {}
+        cookie = request.get(self.cookie_name, '')
+        if cookie and cookie != 'deleted':
+            session = self._get_session(request)
+            if session.get('auth_secret', None) == unquote(cookie):
+                login = session.get('login', None)
+                password = session.get('password', None)
+                if login and password:
+                    credentials['login'] = login
+                    credentials['password'] = password
+        if credentials:
+            credentials['remote_host'] = request.get('REMOTE_HOST', '')
+            credentials['remote_address'] = request.getClientAddr()
+
+        return credentials
 
     security.declarePrivate('updateCredentials')
-    def updateCredentials(self, request, response, login, new_password):
-        """ Respond to change of credentials (NOOP for basic auth). """
-        cookie_str = '%s:%s' % (login.encode('hex'), new_password.encode('hex'))
-        cookie_val = encodestring(cookie_str)
-        cookie_val = cookie_val.rstrip()
+    def updateCredentials(self, request, response, login, password):
+        """Respond to change of credentials (NOOP for basic auth).
+        """
+        secret = create_secret(request, login)
+        session = self._get_session(request)
+        session.set('auth_secret', secret)
+        session.set('login', login)
+        session.set('password', password)
         expires = rfc1123_date(time.time() + self.lifetime)
-        response.setCookie(self.cookie_name, quote(cookie_val), path='/',
-            expires=expires)
+        response.setCookie(
+            self.cookie_name, quote(secret), path='/', expires=expires)
 
     security.declarePublic('login')
     def login(self):
@@ -102,33 +156,41 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         request = self.REQUEST
         response = request['RESPONSE']
 
-        login = request.get('__ac_name', '')
-        password = request.get('__ac_password', '')
+        login = request.form.get('__ac_name', '')
+        password = request.form.get('__ac_password', '')
+        secret = request.form.get('__ac_secret', '')
+        authenticated = False
 
         if (not login) or (not password):
             return self.unauthorized(
-                login_status=u"You need to type a login and a password.")
+                login_status=u"You need to provide a login and a password.")
         else:
-            creds = {'login': login, 'password': password,}
-            pas_instance = self._getPAS()
-            if pas_instance is not None:
-                plugins = pas_instance.plugins
-                authenticators = plugins.listPlugins(IAuthenticationPlugin)
-                for auth_id, auth in authenticators:
+            stored_secret = self._get_session(request).get('secret', None)
+            if stored_secret != secret:
+                return self.unauthorized(
+                    login_status=u"Invalid login or password")
+            credentials = {'login': login, 'password': password,}
+            pas = self._getPAS()
+            if pas is not None:
+                for auth_id, auth in pas.plugins.listPlugins(
+                    IAuthenticationPlugin):
                     try:
-                        uid_and_info = auth.authenticateCredentials(creds)
+                        uid_and_info = auth.authenticateCredentials(
+                            credentials)
                         if uid_and_info is None:
                             continue
                         user_id, info = uid_and_info
                         if user_id is not None:
-                            pas_instance.updateCredentials(request, response,
-                                                           login, password)
+                            pas.updateCredentials(
+                                request, response, login, password)
+                            authenticated = True
                             break
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
                         continue
-
-            came_from = request.form['came_from']
-            return response.redirect(came_from)
+            if authenticated:
+                return response.redirect(request.form['came_from'])
+            return self.unauthorized(
+                login_status=u"Invalid login or password")
 
 
 InitializeClass(SilvaCookieAuthHelper)

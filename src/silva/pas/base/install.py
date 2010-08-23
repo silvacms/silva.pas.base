@@ -2,22 +2,13 @@
 # See also LICENSE.txt
 # $Id$
 
-from Products.Silva.install import add_helper, zpt_add_helper
 from Products.PluggableAuthService.interfaces.plugins import *
-
 from silva.pas.base.interfaces import IPASMemberService
 
 
 def install(root):
     """Install PAS Support.
     """
-    # add login form
-    add_helper(root, 'silva_login_form.html',
-               globals(), zpt_add_helper, default_if_existent=1)
-    login_form = getattr(root, 'silva_login_form.html')
-    login_form.manage_permission('View', ('Anonymous',))
-    login_form.manage_permission('Access contents information', ('Anonymous',))
-
     # set up acl_users if needed
     registerUserFolder(root)
 
@@ -30,8 +21,8 @@ def uninstall(root):
     """
     # remove special member service and install default silva one
     root.manage_delObjects(['service_members',])
-    add_product = root.manage_addProduct['Silva']
-    add_product.manage_addSimpleMemberService('service_members')
+    factory = root.manage_addProduct['Silva']
+    factory.manage_addSimpleMemberService('service_members')
 
 
 def is_installed(root):
