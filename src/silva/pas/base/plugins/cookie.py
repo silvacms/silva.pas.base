@@ -169,7 +169,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                 login_status=u"You need to provide a login and a password.")
         else:
             stored_secret = self._get_session(request).get('secret', None)
-            if stored_secret != secret:
+            if (stored_secret != secret) or request.method != 'POST':
                 return self.unauthorized(
                     login_status=u"Invalid login or password")
             credentials = {'login': login, 'password': password,}
