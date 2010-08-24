@@ -21,8 +21,9 @@ from Products.PluggableAuthService.plugins.CookieAuthHelper import \
     CookieAuthHelper
 
 from zope import component
+from zope.interface import alsoProvides
 from zope.datetime import rfc1123_date
-from silva.core.views.interfaces import IVirtualSite
+from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
 
 
@@ -57,6 +58,8 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         pass                    # Do nothing
 
     def _get_login_page(self, request):
+        # Disable caching on the login page.
+        alsoProvides(request, INonCachedLayer)
         root = IVirtualSite(request).get_root()
         page = component.queryMultiAdapter(
             (root, request), name=self.login_path)
