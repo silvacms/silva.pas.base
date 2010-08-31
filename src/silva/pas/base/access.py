@@ -9,9 +9,7 @@ from zope.cachedescriptors.property import CachedProperty
 
 from silva.core.services.interfaces import IMemberService
 from silva.core.cache.store import SessionStore
-from silva.core.smi.interfaces import IAccessTab
-from silva.core.smi.access import AccessTab
-from silva.core.smi import smi as silvasmi
+from silva.core.smi.access import AccessTab, IGrantRole
 from silva.core.interfaces import ISilvaObject
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
@@ -20,18 +18,10 @@ from zeam.form.silva.interfaces import IRESTCloseOnSuccessAction
 
 GROUP_STORE_KEY = 'lookup group'
 
-class LookupGroupButton(silvasmi.SMIMiddleGroundRemoteButton):
-    grok.view(IAccessTab)
-    grok.order(0)
-
-    label = _(u"lookup groups")
-    description = _(u"look for groups to assign roles: alt-l")
-    action = 'smi-lookupgroup'
-    accesskey = u'l'
-
 
 class ILookupGroupSchema(interface.Interface):
-
+    """Look for a group
+    """
     group = schema.TextLine(
         title=_(u"group name"),
         description=_(u"group name or part of the group name to lookup"),
@@ -93,35 +83,56 @@ class LookupGroupForm(silvaforms.RESTPopupForm):
         silvaforms.CancelAction())
 
 
-class GroupRole(silvaforms.SMISubFormGroup):
-    grok.context(ISilvaObject)
-    grok.order(50)
-    grok.view(AccessTab)
-
-    label = _(u'manage group roles')
-    description = _(u"find, add and remove roles to groups")
+class LookupGroupPopupAction(silvaforms.PopupAction):
+    title = _(u"lookup groups")
+    description = _(u"look for groups to assign roles: alt-g")
+    action = 'smi-lookupgroup'
+    accesskey = u'g'
 
 
 class IGroup(interface.Interface):
     groupname = schema.TextLine(title=u"group name")
 
 
-class LookupGroupResultForm(silvaforms.SMISubForm):
+class GroupRole(silvaforms.SMISubFormGroup):
+    grok.context(ISilvaObject)
+    grok.order(50)
+    grok.view(AccessTab)
+
+
+class GroupRoleForm(silvaforms.SMISubTableForm):
+    """Form to give/revoke access to users.
+    """
+    grok.context(ISilvaObject)
+    grok.order(20)
+    grok.view(GroupRole)
+
+    label = _(u"group roles")
+    ignoreContent = False
+    ignoreRequest = True
+    mode = silvaforms.DISPLAY
+    fields = silvaforms.Fields(IGrantRole)
+    fields['role'].mode = silvaforms.INPUT
+    fields['role'].ignoreRequest = False
+    fields['role'].ignoreContent = True
+    fields['role'].available = lambda form: len(form.lines) != 0
+    tableFields = silvaforms.Fields(IGroup)
+    tableActions = silvaforms.TableActions()
+
+    def getItems(self):
+        return []
+
+
+class LookupGroupResultForm(silvaforms.SMISubTableForm):
     """Form to give/revoke access to users.
     """
     grok.context(ISilvaObject)
     grok.order(10)
     grok.view(GroupRole)
 
-    label = _(u"group lookup results")
-    ignoreContent = False
-    ignoreRequest = True
-    mode = silvaforms.DISPLAY
-    # fields = silvaforms.Fields(IGrantRole)
-    # fields['role'].mode = silvaforms.INPUT
-    # fields['role'].ignoreRequest = False
-    # fields['role'].ignoreContent = True
-    tableFields = silvaforms.Fields(IGroup)
+    label = _(u"group clipboard")
+    emptyDescription = _(u"Search for groups to assign them roles")
+    actions = silvaforms.Actions(LookupGroupPopupAction())
     tableActions = silvaforms.TableActions()
 
     @CachedProperty
@@ -131,9 +142,6 @@ class LookupGroupResultForm(silvaforms.SMISubForm):
     def getGroupIds(self):
         return self.store.get(GROUP_STORE_KEY, set())
 
-    def available(self):
-        return len(self.getGroupIds()) != 0
-
     def getItems(self):
         return []
         group_ids = self.getGroupIds()
@@ -141,6 +149,7 @@ class LookupGroupResultForm(silvaforms.SMISubForm):
 
     @silvaforms.action(
         _(u"clear result"),
-        description=_(u"clear group lookup results"))
+        description=_(u"clear group lookup results"),
+        available=lambda form: len(form.lines) != 0)
     def clear(self):
         self.store.set(GROUP_STORE_KEY, set())
