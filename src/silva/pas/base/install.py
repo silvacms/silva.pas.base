@@ -20,7 +20,8 @@ def uninstall(root):
     """Uninstall PAS Support.
     """
     # remove special member service and install default silva one
-    root.manage_delObjects(['service_members',])
+    if 'service_members' in root.objectIds():
+        root.manage_delObjects(['service_members',])
     factory = root.manage_addProduct['Silva']
     factory.manage_addSimpleMemberService('service_members')
 
@@ -78,7 +79,8 @@ def createDefaultSilvaRolesInPAS(plugin):
 
 
 def registerServiceMembers(root):
-    root.manage_delObjects(['service_members'])
+    if 'service_members' in root.objectIds():
+        root.manage_delObjects(['service_members',])
     add_product = root.manage_addProduct['silva.pas.base']
     add_product.manage_addMemberService('service_members')
 

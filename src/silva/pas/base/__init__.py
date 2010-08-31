@@ -31,5 +31,3 @@ def initialize(context):
         (cascading.manage_addSilvaCascadingPASPluginForm,
          cascading.manage_addSilvaCascadingPASPlugin),
         visibility=None)
-
-
