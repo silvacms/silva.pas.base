@@ -23,13 +23,18 @@ from Products.PluggableAuthService.plugins.CookieAuthHelper import \
 from zope import component
 from zope.interface import alsoProvides
 from zope.datetime import rfc1123_date
+from zope.publisher.interfaces.browser import IBrowserSkinType
+from silva.core.layout.traverser import applySkinButKeepSome
+from silva.core.layout.interfaces import IMetadata
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
 
 
+CLIENT_SECRET = str(os.urandom(8*8))
+
 def create_secret(request, *args):
     challenge = hmac.new(
-        str(os.urandom(8*8)),
+        CLIENT_SECRET,
         str(request.SESSION.id),
         hashlib.sha1)
     for arg in args:
@@ -44,7 +49,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
     # Customize configuration
     cookie_name='__ac_silva'
-    login_path = '@@silva_login_form.html'
+    login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
     _properties = CookieAuthHelper._properties + (
         {'id'    : 'lifetime',
@@ -54,13 +59,27 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
-        """ Setup tasks upon instantiation """
-        pass                    # Do nothing
+        """ Setup tasks upon instantiation
+        """
+        # This code setup the default login page in ZODB. We don't
+        # want to do this.
+
+    def _restore_public_skin(self, request, root):
+        # Restore public skin site
+        metadata = IMetadata(root)
+        try:
+            name = metadata('silva-layout', 'skin')
+            skin = component.queryUtility(IBrowserSkinType, name=name)
+            applySkinButKeepSome(request, skin)
+        except AttributeError:
+            pass
+        alsoProvides(request, INonCachedLayer)
 
     def _get_login_page(self, request):
         # Disable caching on the login page.
-        alsoProvides(request, INonCachedLayer)
         root = IVirtualSite(request).get_root()
+        self._restore_public_skin(request, root)
+
         page = component.queryMultiAdapter(
             (root, request), name=self.login_path)
         if page is not None:
@@ -77,7 +96,6 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         # If we set the auth cookie before, delete it now.
         if response.cookies.has_key(self.cookie_name):
             del response.cookies[self.cookie_name]
-
         # Get the login page.
         page = self._get_login_page(request)
         if page is None:
@@ -92,9 +110,9 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     if bad in query:
                         del query[bad]
             if query:
-                encode = lambda v: v.encode('ascii', 'xmlcharrefreplace')
+                encoder = lambda v: v.encode('ascii', 'xmlcharrefreplace')
                 keys, values = zip(*query.items())
-                query = dict(zip(keys, map(encode, values)))
+                query = dict(zip(keys, map(encoder, values)))
                 came_from = mangle.urlencode(came_from, **query)
 
         secret = create_secret(request, came_from)
