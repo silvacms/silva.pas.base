@@ -2,8 +2,8 @@
 # See also LICENSE.txt
 # $Id$
 
-from Products.PluggableAuthService.interfaces.plugins import *
-from silva.pas.base.interfaces import IPASMemberService
+from Products.PluggableAuthService.interfaces import plugins as pas
+from silva.pas.base.interfaces import IPASService
 
 
 def install(root):
@@ -27,7 +27,8 @@ def uninstall(root):
 
 
 def is_installed(root):
-    return IPASMemberService.providedBy(root.service_members)
+    service = getattr(root, 'service_members', None)
+    return service is not None and IPASService.providedBy(service)
 
 
 def registerUserFolder(root):
@@ -50,19 +51,19 @@ def registerUserFolder(root):
                                                 delegate_path='/acl_users')
 
     plugins = acl_users.plugins
-    plugins.activatePlugin(IExtractionPlugin, 'cookie_auth')
-    plugins.activatePlugin(IChallengePlugin, 'cookie_auth')
-    plugins.activatePlugin(ICredentialsResetPlugin, 'cookie_auth')
-    plugins.activatePlugin(ICredentialsUpdatePlugin, 'cookie_auth')
-    plugins.activatePlugin(IAuthenticationPlugin, 'users')
-    plugins.activatePlugin(IAuthenticationPlugin, 'zope')
-    plugins.activatePlugin(IUserAdderPlugin, 'users')
-    plugins.activatePlugin(IUserEnumerationPlugin, 'users')
-    plugins.activatePlugin(IUserEnumerationPlugin, 'zope')
-    plugins.activatePlugin(IRolesPlugin, 'roles')
-    plugins.activatePlugin(IRolesPlugin, 'zope')
-    plugins.activatePlugin(IRoleAssignerPlugin, 'roles')
-    plugins.activatePlugin(IRoleEnumerationPlugin, 'roles')
+    plugins.activatePlugin(pas.IExtractionPlugin, 'cookie_auth')
+    plugins.activatePlugin(pas.IChallengePlugin, 'cookie_auth')
+    plugins.activatePlugin(pas.ICredentialsResetPlugin, 'cookie_auth')
+    plugins.activatePlugin(pas.ICredentialsUpdatePlugin, 'cookie_auth')
+    plugins.activatePlugin(pas.IAuthenticationPlugin, 'users')
+    plugins.activatePlugin(pas.IAuthenticationPlugin, 'zope')
+    plugins.activatePlugin(pas.IUserAdderPlugin, 'users')
+    plugins.activatePlugin(pas.IUserEnumerationPlugin, 'users')
+    plugins.activatePlugin(pas.IUserEnumerationPlugin, 'zope')
+    plugins.activatePlugin(pas.IRolesPlugin, 'roles')
+    plugins.activatePlugin(pas.IRolesPlugin, 'zope')
+    plugins.activatePlugin(pas.IRoleAssignerPlugin, 'roles')
+    plugins.activatePlugin(pas.IRoleEnumerationPlugin, 'roles')
 
     createDefaultSilvaRolesInPAS(acl_users.roles)
 

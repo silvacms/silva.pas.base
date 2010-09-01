@@ -3,12 +3,16 @@
 # $Id$
 
 from zope.interface import Interface
-from silva.core.services.interfaces import IMemberService
+from silva.core.services.interfaces import IMemberService, IGroupService
 
 
-class IPASMemberService(IMemberService):
+class IPASService(IMemberService, IGroupService):
     """Mark PAS Service Membership.
     """
+
+
+# BBB
+IPASMemberService = IPASService
 
 
 class IUserConverter(Interface):

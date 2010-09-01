@@ -39,6 +39,8 @@ setup(name='silva.pas.base',
         "zope.datetime",
         "zope.interface",
         ],
+      entry_points = """
+      [zodbupdate]
+      renames = silva.pas.base:CLASS_CHANGES
+      """
       )
-
-

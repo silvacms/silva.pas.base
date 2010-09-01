@@ -16,6 +16,7 @@ registerMultiPlugin(cascading.SilvaCascadingPASPlugin.meta_type)
 silvaconf.extensionName('silva.pas.base')
 silvaconf.extensionTitle('Silva Pluggable Auth Service Support')
 
+
 def initialize(context):
     context.registerClass(
         cookie.SilvaCookieAuthHelper,
@@ -31,3 +32,9 @@ def initialize(context):
         (cascading.manage_addSilvaCascadingPASPluginForm,
          cascading.manage_addSilvaCascadingPASPlugin),
         visibility=None)
+
+
+CLASS_CHANGES = {
+    'silva.core.pas.interfaces IPASMemberService':
+        'silva.core.pas.interfaces IPASService',
+    }
