@@ -4,9 +4,6 @@
 
 from urllib import quote, unquote
 import time
-import hmac
-import os
-import hashlib
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
@@ -28,18 +25,7 @@ from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.layout.interfaces import IMetadata
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
-
-
-CLIENT_SECRET = str(os.urandom(8*8))
-
-def create_secret(request, *args):
-    challenge = hmac.new(
-        CLIENT_SECRET,
-        str(request.SESSION.id),
-        hashlib.sha1)
-    for arg in args:
-        challenge.update(str(args))
-    return challenge.hexdigest()
+from silva.pas.base.interfaces import ISecretService
 
 
 class SilvaCookieAuthHelper(CookieAuthHelper):
@@ -90,6 +76,10 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         return SessionStore(request, region='auth')
 
     def unauthorized(self, login_status=None):
+        service = component.queryUtility(ISecretService)
+        if service is None:
+            return 0
+
         request = self.REQUEST
         response = request['RESPONSE']
 
@@ -115,7 +105,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                 query = dict(zip(keys, map(encoder, values)))
                 came_from = mangle.urlencode(came_from, **query)
 
-        secret = create_secret(request, came_from)
+        secret = service.create_secret(request, came_from)
         session = self._get_session(request)
         session.set('secret', secret)
 
@@ -160,7 +150,8 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
     def updateCredentials(self, request, response, login, password):
         """Respond to change of credentials (NOOP for basic auth).
         """
-        secret = create_secret(request, login)
+        service = component.getUtility(ISecretService)
+        secret = service.create_secret(request, login)
         session = self._get_session(request)
         session.set('auth_secret', secret)
         session.set('login', login)
