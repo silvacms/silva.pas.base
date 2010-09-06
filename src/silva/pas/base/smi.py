@@ -3,18 +3,23 @@
 # See also LICENSE.txt
 # $Id$
 
+import operator
+
 from five import grok
 from zope import interface, schema, component
 from zope.cachedescriptors.property import CachedProperty
 
+from Products.Silva.Security import UnauthorizedRoleAssignement
+
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
+from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
 from silva.core.services.interfaces import IGroupService
 from silva.core.smi.access import AccessTab, IGrantRoleSchema
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
-    IRESTCloseOnSuccessAction, IRESTRefreshAction)
+    IRESTCloseOnSuccessAction, IRESTRefreshAction, IRemoverAction)
 
 
 GROUP_STORE_KEY = 'lookup group'
@@ -107,8 +112,92 @@ class GroupRole(silvaforms.SMISubFormGroup):
                 super(GroupRole, self).available())
 
 
-class IGroupSchema(interface.Interface):
-    groupname = schema.TextLine(title=u"group name")
+class IGroupAuthorization(interface.Interface):
+
+    identifier = schema.TextLine(
+        title=_(u"group name"))
+    acquired_role = schema.Choice(
+        title=_(u"role defined above"),
+        source=role_vocabulary,
+        required=False)
+    local_role = schema.Choice(
+        title=_(u"role defined here"),
+        source=role_vocabulary,
+        required=False)
+
+
+class GrantAccessAction(silvaforms.Action):
+
+    title = _(u"grant role")
+    description = _(u"grant the selected role to selected groups(s)")
+
+    def available(self, form):
+        return len(form.lines) != 0
+
+    def __call__(self, form, authorization, line):
+        data, errors = form.extractData(form.fields)
+        if errors:
+            return silvaforms.FAILURE
+        role = data['role']
+        if not role:
+            return form.revoke(authorization, line)
+        mapping = {'role': role,
+                   'groupname': authorization.identifier}
+        try:
+            if authorization.grant(role):
+                form.send_message(
+                    _('Role "${role}" granted to group "${groupname}".',
+                      mapping=mapping),
+                    type="feedback")
+            else:
+                form.send_message(
+                    _('Group "${groupname}" already has the role "${role}".',
+                      mapping=mapping),
+                    type="error")
+        except UnauthorizedRoleAssignement:
+            form.send_message(
+                _(u'Sorry, you are not allowed to remove the role "${role}" '
+                  u'from group "${groupid}".',
+                  mapping=mapping),
+                type="error")
+        return silvaforms.SUCCESS
+
+
+class RevokeAccessAction(silvaforms.Action):
+    grok.implements(IRemoverAction)
+
+    title = _(u"revoke role")
+    description=_(u"revoke the role of selected group(s)")
+
+    def available(self, form):
+        return reduce(
+            operator.or_,
+            [False] + map(lambda l: l.getContent().local_role is not None,
+                          form.lines))
+
+    def __call__(self, form, authorization, line):
+        try:
+            role = authorization.local_role
+            groupname = authorization.identifier
+            if authorization.revoke():
+                form.send_message(
+                    _(u'Removed role "${role}" from group "${groupname}".',
+                      mapping={'role': role,
+                               'groupname': groupname}),
+                    type="feedback")
+            else:
+                form.send_message(
+                    _(u'Group "${groupname}" doesn\'t have any local role.',
+                      mapping={'groupname': groupname}),
+                    type="error")
+        except UnauthorizedRoleAssignement, error:
+            form.send_message(
+                _(u'Sorry, you are not allowed to remove the role "${role}" '
+                  u'from group "${groupid}".',
+                  mapping={'role': error.args[0],
+                           'groupid': error.args[1]}),
+                type="error")
+        return silvaforms.SUCCESS
 
 
 class GroupRoleForm(silvaforms.SMISubTableForm):
@@ -119,6 +208,7 @@ class GroupRoleForm(silvaforms.SMISubTableForm):
     grok.view(GroupRole)
 
     label = _(u"group roles")
+    emptyDescription = _(u'No roles have been assigned.')
     ignoreContent = False
     ignoreRequest = True
     mode = silvaforms.DISPLAY
@@ -127,24 +217,28 @@ class GroupRoleForm(silvaforms.SMISubTableForm):
     fields['role'].ignoreRequest = False
     fields['role'].ignoreContent = True
     fields['role'].available = lambda form: len(form.lines) != 0
-    tableFields = silvaforms.Fields(IGroupSchema)
-    tableActions = silvaforms.TableActions()
+    tableFields = silvaforms.Fields(IGroupAuthorization)
+    tableActions = silvaforms.TableActions(
+        RevokeAccessAction(),
+        GrantAccessAction())
 
     def getItems(self):
-        return []
+        access = IAuthorizationManager(self.context)
+        authorizations = access.get_defined_authorizations().items()
+        authorizations.sort(key=operator.itemgetter(0))
+        return filter(lambda auth: auth.type == 'group',
+                      map(operator.itemgetter(1), authorizations))
 
 
 class LookupGroupResultForm(GroupRoleForm):
     """Form to give/revoke access to users.
     """
-    grok.context(ISilvaObject)
     grok.order(10)
-    grok.view(GroupRole)
 
     label = _(u"group clipboard")
     emptyDescription = _(u"Search for groups to assign them roles")
     actions = silvaforms.Actions(LookupGroupPopupAction())
-    tableActions = silvaforms.TableActions()
+    tableActions = silvaforms.TableActions(GrantAccessAction())
 
     @CachedProperty
     def store(self):
@@ -153,13 +247,17 @@ class LookupGroupResultForm(GroupRoleForm):
     def getItems(self):
         group_ids = self.store.get(GROUP_STORE_KEY, set())
         if group_ids:
-            service = component.getUtility(IGroupService)
-            return map(service.get_group, group_ids)
-        return [] # map(operator.itemgetter(1), authorizations)
+            access = IAuthorizationManager(self.context)
+            authorizations = access.get_authorizations(group_ids).items()
+            authorizations.sort(key=operator.itemgetter(0))
+            return filter(lambda auth: auth.type == 'group',
+                          map(operator.itemgetter(1), authorizations))
+        return []
 
     @silvaforms.action(
-        _(u"clear result"),
+        _(u"clear clipboard"),
         description=_(u"clear group lookup results"),
-        available=lambda form: len(form.lines) != 0)
+        available=lambda form: len(form.lines) != 0,
+        implements=IRemoverAction)
     def clear(self):
         self.store.set(GROUP_STORE_KEY, set())
