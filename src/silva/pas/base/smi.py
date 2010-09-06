@@ -38,7 +38,8 @@ class ILookupGroupSchema(interface.Interface):
     group = schema.TextLine(
         title=_(u"group name"),
         description=_(u"group name or part of the group name to lookup"),
-        required=True)
+        default=u'',
+        required=False)
 
 
 class LookupGroupAction(silvaforms.Action):
@@ -52,13 +53,7 @@ class LookupGroupAction(silvaforms.Action):
         data, errors = form.extractData()
         if errors:
             return silvaforms.FAILURE
-        groupname = data['group'].strip()
-        if len(groupname) < 2:
-            form.send_message(
-                _(u"Search input is too short. "
-                  u"Please supply more characters"),
-                type="error")
-            return silvaforms.FAILURE
+        groupname = data.getDefault('group').strip()
 
         service = component.getUtility(IGroupService)
 
