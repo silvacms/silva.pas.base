@@ -9,6 +9,7 @@ from AccessControl import ClassSecurityInfo
 from App.class_init import InitializeClass
 
 # Silva
+from Products.Silva import roleinfo
 from Products.Silva import SilvaPermissions, mangle
 from Products.Silva.SimpleMembership import SimpleMemberService
 from Products.PluggableAuthService.interfaces.authservice import \
@@ -36,6 +37,9 @@ class Group(object):
 
     def groupname(self):
         return self.__groupname
+
+    def allowed_roles(self):
+        return roleinfo.ASSIGNABLE_ROLES
 
 
 
