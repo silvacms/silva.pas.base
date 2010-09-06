@@ -26,18 +26,18 @@ GROUP_STORE_KEY = 'lookup group'
 
 
 class LookupGroupPopupAction(silvaforms.PopupAction):
-    title = _(u"lookup groups")
-    description = _(u"look for groups to assign roles: alt-g")
+    title = _(u"lookup groups...")
+    description = _(u"search for groups to assign roles: alt-g")
     action = 'smi-lookupgroup'
     accesskey = u'g'
 
 
 class ILookupGroupSchema(interface.Interface):
-    """Look for a group
+    """Lookup a group
     """
     group = schema.TextLine(
         title=_(u"group name"),
-        description=_(u"group name or part of the group name to lookup"),
+        description=_(u"group name or part of a group name to lookup"),
         default=u'',
         required=False)
 
@@ -47,7 +47,7 @@ class LookupGroupAction(silvaforms.Action):
     refresh = 'form-grouprole'
 
     title = _(u"lookup group")
-    description=_(u"look for groups in order to assign them roles")
+    description=_(u"search for groups in order to assign them roles")
 
     def __call__(self, form):
         data, errors = form.extractData()
@@ -68,13 +68,13 @@ class LookupGroupAction(silvaforms.Action):
             groups = store.get(GROUP_STORE_KEY, set()).union(groups)
             store.set(GROUP_STORE_KEY, groups)
             form.send_message(
-                _(u"Found ${count} groups: ${groups}",
+                _(u"Found ${count} groups: ${groups}.",
                   mapping={'count': len(new_groups),
                            'groups': u', '.join(new_groups)}),
                 type="feedback")
         else:
             form.send_message(
-                _(u"No matching groups"),
+                _(u"No matching groups found."),
                 type="error")
             return silvaforms.FAILURE
         return silvaforms.SUCCESS
@@ -88,7 +88,7 @@ class LookupGroupForm(silvaforms.RESTPopupForm):
     grok.name('smi-lookupgroup')
 
     label = _(u"lookup groups")
-    description = _(u"Look for groups to assign them roles.")
+    description = _(u"Search for groups to assign them roles.")
     fields = silvaforms.Fields(ILookupGroupSchema)
     actions = silvaforms.Actions(
         LookupGroupAction(),
@@ -124,7 +124,7 @@ class IGroupAuthorization(interface.Interface):
 class GrantAccessAction(silvaforms.Action):
 
     title = _(u"grant role")
-    description = _(u"grant the selected role to selected groups(s)")
+    description = _(u"grant the selected role to the selected groups(s)")
 
     def available(self, form):
         return len(form.lines) != 0
@@ -196,7 +196,7 @@ class RevokeAccessAction(silvaforms.Action):
 
 
 class GroupRoleForm(silvaforms.SMISubTableForm):
-    """Form to give/revoke access to users.
+    """Form to grant/revoke access to users.
     """
     grok.context(ISilvaObject)
     grok.order(20)
@@ -226,12 +226,12 @@ class GroupRoleForm(silvaforms.SMISubTableForm):
 
 
 class LookupGroupResultForm(GroupRoleForm):
-    """Form to give/revoke access to users.
+    """Form to grant/revoke access to users.
     """
     grok.order(10)
 
     label = _(u"group clipboard")
-    emptyDescription = _(u"Search for groups to assign them roles")
+    emptyDescription = _(u"Search for groups to assign them roles.")
     actions = silvaforms.Actions(LookupGroupPopupAction())
     tableActions = silvaforms.TableActions(GrantAccessAction())
 
@@ -251,7 +251,7 @@ class LookupGroupResultForm(GroupRoleForm):
 
     @silvaforms.action(
         _(u"clear clipboard"),
-        description=_(u"clear group lookup results"),
+        description=_(u"remove the group lookup results"),
         available=lambda form: len(form.lines) != 0,
         implements=IRemoverAction)
     def clear(self):
