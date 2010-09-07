@@ -4,7 +4,9 @@ import hashlib
 
 from five import grok
 
+from silva.core import conf as silvaconf
 from silva.core.services.base import SilvaService
+from zope.session.interfaces import IClientId
 from silva.pas.base.interfaces import ISecretService
 from zeam.form import silva as silvaforms
 
@@ -16,7 +18,9 @@ class SecretService(SilvaService):
     default_service_identifier = 'service_secret'
     manage_options = (
         {'label': 'Secret generation service',
-         'action': 'manage_workspace'},) + SilvaService.manage_options
+         'action': 'manage_main'},) + SilvaService.manage_options
+    silvaconf.icon('www/key.png')
+
 
     def __init__(self, id):
         super(SecretService, self).__init__(id)
@@ -28,7 +32,7 @@ class SecretService(SilvaService):
     def create_secret(self, request, *args):
         challenge = hmac.new(
             self.__key,
-            str(request.SESSION.id),
+            str(IClientId(request)),
             hashlib.sha1)
         for arg in args:
             challenge.update(str(args))
