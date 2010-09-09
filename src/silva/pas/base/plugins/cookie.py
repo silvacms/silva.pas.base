@@ -28,12 +28,15 @@ from silva.pas.base.interfaces import ISecretService
 
 
 def encode_query(query):
+
     def encode_value(value):
         if isinstance(value, list):
             return map(encode_value, value)
-        return value.encode('ascii', 'xmlcharrefreplace')
-    keys, values = zip(*query.items())
-    return dict(zip(keys, map(encode_value, values)))
+        return [value.encode('ascii', 'xmlcharrefreplace')]
+
+    for key, value in query.items():
+        for value in encode_value(value):
+            yield key, value
 
 
 class SilvaCookieAuthHelper(CookieAuthHelper):
@@ -108,7 +111,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     if bad in query:
                         del query[bad]
             if query:
-                came_from += '?' + urlencode(encode_query(query))
+                came_from += '?' + urlencode(list(encode_query(query)))
 
         secret = service.create_secret(request, came_from)
         session = self._get_session(request)
