@@ -88,8 +88,8 @@ class LookupGroupForm(silvaforms.RESTPopupForm):
     grok.name('smi-lookupgroup')
 
     label = _(u"lookup groups")
-    description = _(u"Search for groups to assign them roles. ",
-                    u"Leave the field empty to get all groups ",
+    description = _(u"Search for groups to assign them roles. "
+                    u"Leave the field empty to get all groups "
                     u"(could be a long list).")
     fields = silvaforms.Fields(ILookupGroupSchema)
     actions = silvaforms.Actions(
