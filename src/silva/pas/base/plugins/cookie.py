@@ -2,13 +2,12 @@
 # See also LICENSE.txt
 # $Id$
 
-from urllib import quote, unquote
+from urllib import quote, unquote, urlencode
 import time
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.Silva import mangle
 
 from Products.PluggableAuthService.PluggableAuthService import \
     _SWALLOWABLE_PLUGIN_EXCEPTIONS
@@ -26,6 +25,15 @@ from silva.core.layout.interfaces import IMetadata
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
 from silva.pas.base.interfaces import ISecretService
+
+
+def encode_query(query):
+    def encode_value(value):
+        if isinstance(value, list):
+            return map(encode_value, value)
+        return value.encode('ascii', 'xmlcharrefreplace')
+    keys, values = zip(*query.items())
+    return dict(zip(keys, map(encode_value, values)))
 
 
 class SilvaCookieAuthHelper(CookieAuthHelper):
@@ -100,10 +108,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     if bad in query:
                         del query[bad]
             if query:
-                encoder = lambda v: v.encode('ascii', 'xmlcharrefreplace')
-                keys, values = zip(*query.items())
-                query = dict(zip(keys, map(encoder, values)))
-                came_from = mangle.urlencode(came_from, **query)
+                came_from += '?' + urlencode(encode_query(query))
 
         secret = service.create_secret(request, came_from)
         session = self._get_session(request)
