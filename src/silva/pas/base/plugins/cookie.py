@@ -25,7 +25,7 @@ from zope.session.interfaces import IClientId
 from silva.core.layout.interfaces import IMetadata
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
-from silva.pas.base.interfaces import ISecretService
+from silva.core.services.interfaces import ISecretService
 
 
 def encode_query(query):

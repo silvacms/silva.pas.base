@@ -14,7 +14,6 @@ def install(root):
 
     # set up service_members if needed
     registerServiceMembers(root)
-    install_secret_service(root)
 
 
 def uninstall(root):
@@ -23,7 +22,7 @@ def uninstall(root):
     # remove special member service and install default silva one
     oids = root.objectIds()
     delete_objects = []
-    for service in ['service_members', 'service_secret']:
+    for service in ['service_members']:
         if service in oids:
             delete_objects.append(service)
     root.manage_delObjects(delete_objects)
@@ -90,13 +89,6 @@ def registerServiceMembers(root):
         root.manage_delObjects(['service_members',])
     add_product = root.manage_addProduct['silva.pas.base']
     add_product.manage_addMemberService('service_members')
-
-
-def install_secret_service(root):
-    if 'service_secret':
-        root.manage_delObjects(['service_secret',])
-    add_product = root.manage_addProduct['silva.pas.base']
-    add_product.manage_addSecretService('service_secret')
 
 
 if __name__ == '__main__':

@@ -15,18 +15,6 @@ class IPASService(IMemberService, IGroupService):
 IPASMemberService = IPASService
 
 
-class ISecretService(Interface):
-
-    def generate_new_key():
-        """ generate new internal key
-        """
-
-    def create_secret(request, *args):
-        """ use the request and args to generate a secret key
-        for one user.
-        """
-
-
 class IUserConverter(Interface):
     """Some User can have userid incompatible with Silva SimpleMember.
 
