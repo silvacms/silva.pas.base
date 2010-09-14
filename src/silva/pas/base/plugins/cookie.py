@@ -114,7 +114,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
             if query:
                 came_from += '?' + urlencode(list(encode_query(query)))
 
-        secret = service.create_secret(IClientId(request), came_from)
+        secret = service.digest(IClientId(request), came_from)
         session = self._get_session(request)
         session.set('secret', secret)
 
