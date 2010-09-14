@@ -13,6 +13,7 @@ class IPASService(IMemberService, IGroupService):
 
 # BBB
 IPASMemberService = IPASService
+from silva.core.services.interfaces import ISecretService
 
 
 class IUserConverter(Interface):
