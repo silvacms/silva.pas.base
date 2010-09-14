@@ -21,6 +21,7 @@ from zope.interface import alsoProvides
 from zope.datetime import rfc1123_date
 from zope.publisher.interfaces.browser import IBrowserSkinType
 from silva.core.layout.traverser import applySkinButKeepSome
+from zope.session.interfaces import IClientId
 from silva.core.layout.interfaces import IMetadata
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
@@ -113,7 +114,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
             if query:
                 came_from += '?' + urlencode(list(encode_query(query)))
 
-        secret = service.create_secret(request, came_from)
+        secret = service.create_secret(IClientId(request), came_from)
         session = self._get_session(request)
         session.set('secret', secret)
 

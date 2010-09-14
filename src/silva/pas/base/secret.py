@@ -6,7 +6,6 @@ from five import grok
 
 from silva.core import conf as silvaconf
 from silva.core.services.base import SilvaService
-from zope.session.interfaces import IClientId
 from silva.pas.base.interfaces import ISecretService
 from zeam.form import silva as silvaforms
 
@@ -21,7 +20,6 @@ class SecretService(SilvaService):
          'action': 'manage_main'},) + SilvaService.manage_options
     silvaconf.icon('www/key.png')
 
-
     def __init__(self, id):
         super(SecretService, self).__init__(id)
         self.generate_new_key()
@@ -30,10 +28,7 @@ class SecretService(SilvaService):
         self.__key = str(os.urandom(8*8))
 
     def create_secret(self, request, *args):
-        challenge = hmac.new(
-            self.__key,
-            str(IClientId(request)),
-            hashlib.sha1)
+        challenge = hmac.new(self.__key, hashlib.sha1)
         for arg in args:
             challenge.update(str(args))
         return challenge.hexdigest()
@@ -56,4 +51,3 @@ class SecretServiceView(silvaforms.ZMIForm):
     def generate_new_key(self):
         self.context.generate_new_key()
         self.status = u'Key updated.'
-
