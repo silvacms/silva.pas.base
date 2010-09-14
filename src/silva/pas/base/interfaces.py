@@ -10,7 +10,6 @@ class IPASService(IMemberService, IGroupService):
     """Mark PAS Service Membership.
     """
 
-
 # BBB
 IPASMemberService = IPASService
 from silva.core.services.interfaces import ISecretService
