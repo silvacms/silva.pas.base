@@ -160,7 +160,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         """Respond to change of credentials (NOOP for basic auth).
         """
         service = component.getUtility(ISecretService)
-        secret = service.create_secret(request, login)
+        secret = service.digest(IClientId(request), login)
         session = self._get_session(request)
         session.set('auth_secret', secret)
         session.set('login', login)
