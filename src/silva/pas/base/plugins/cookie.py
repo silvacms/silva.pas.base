@@ -70,6 +70,12 @@ class SilvaCookieAuthHelper(BasePlugin):
                     'type'  : 'int',
                     'mode'  : 'w'},)
 
+    def __init__(self, id, title=None, cookie_name=''):
+        self._setId(id)
+        self.title = title
+        if cookie_name:
+            self.cookie_name = cookie_name
+
     def _restore_public_skin(self, request, root):
         # Restore public skin site
         metadata = IMetadata(root)
