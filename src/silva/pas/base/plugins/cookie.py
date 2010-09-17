@@ -2,8 +2,9 @@
 # See also LICENSE.txt
 # $Id$
 
-from urllib import quote, unquote, urlencode
+from urllib import urlencode
 import time
+import hashlib
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
@@ -11,21 +12,21 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.PluggableAuthService import \
     _SWALLOWABLE_PLUGIN_EXCEPTIONS
-from Products.PluggableAuthService.interfaces.plugins import \
-    IAuthenticationPlugin
-from Products.PluggableAuthService.plugins.CookieAuthHelper import \
-    CookieAuthHelper
+from Products.PluggableAuthService.interfaces import plugins
+from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
+from silva.pas.base.plugins.interfaces import ICookiePlugin
 
-from zope import component
-from zope.interface import alsoProvides
-from zope.datetime import rfc1123_date
-from zope.publisher.interfaces.browser import IBrowserSkinType
-from silva.core.layout.traverser import applySkinButKeepSome
-from zope.session.interfaces import IClientId
-from silva.core.layout.interfaces import IMetadata
-from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.core.cache.store import SessionStore
+from silva.core.layout.interfaces import IMetadata
+from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
+from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
+from zope.interface import implements
+from zope import component
+from zope.datetime import rfc1123_date
+from zope.interface import alsoProvides
+from zope.publisher.interfaces.browser import IBrowserSkinType
+from zope.session.interfaces import IClientId
 
 
 def encode_query(query):
@@ -33,34 +34,41 @@ def encode_query(query):
     def encode_value(value):
         if isinstance(value, list):
             return map(encode_value, value)
-        return [value.encode('ascii', 'xmlcharrefreplace')]
+        if isinstance(value, basestring):
+            return [value.encode('ascii', 'xmlcharrefreplace')]
+        # Discard value of other type (FileUpload ...)
+        return []
 
     for key, value in query.items():
         for value in encode_value(value):
             yield key, value
 
 
-class SilvaCookieAuthHelper(CookieAuthHelper):
-
+class SilvaCookieAuthHelper(BasePlugin):
     meta_type = 'Silva Cookie Auth Helper'
     security = ClassSecurityInfo()
+    implements(ICookiePlugin)
 
     # Customize configuration
     cookie_name='__ac_silva'
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
-    _properties = CookieAuthHelper._properties + (
-        {'id'    : 'lifetime',
-         'label' : 'Life time (sec)',
-         'type'  : 'int',
-         'mode'  : 'w'},)
-
-    security.declarePrivate('manage_afterAdd')
-    def manage_afterAdd(self, item, container):
-        """ Setup tasks upon instantiation
-        """
-        # This code setup the default login page in ZODB. We don't
-        # want to do this.
+    _properties = ({'id'    : 'title',
+                    'label' : 'Title',
+                    'type'  : 'string',
+                    'mode'  : 'w'},
+                   {'id'    : 'cookie_name',
+                    'label' : 'Cookie Name',
+                    'type'  : 'string',
+                    'mode'  : 'w'},
+                   {'id'    : 'login_path',
+                    'label' : 'Login Form',
+                    'type'  : 'string',
+                    'mode'  : 'w'},
+                   {'id'    : 'lifetime',
+                    'label' : 'Life time (sec)',
+                    'type'  : 'int',
+                    'mode'  : 'w'},)
 
     def _restore_public_skin(self, request, root):
         # Restore public skin site
@@ -86,6 +94,9 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
 
     def _get_session(self, request):
         return SessionStore(request, region='auth')
+
+    def _get_cookie_path(self, request):
+        return '/'.join(IVirtualSite(request).get_root().getPhysicalPath())
 
     def unauthorized(self, login_status=None):
         service = component.queryUtility(ISecretService)
@@ -136,38 +147,64 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
         response.write(page())
         return 1
 
+    security.declarePrivate('challenge')
+    def challenge(self, request, response, **kw):
+        """ Challenge the user for credentials. """
+        return self.unauthorized()
+
+    security.declarePrivate('authenticateCredentials')
+    def authenticateCredentials(self, credentials):
+        cookie = credentials.get('remote_cookie')
+        address = credentials.get('remote_address')
+        if cookie is None or address is None:
+            return None
+        secret_service = component.queryUtility(ISecretService)
+        if secret_service is None:
+            return None
+        client_secret = secret_service.digest(cookie, address)
+        session = self._get_session(self.REQUEST)
+        if session.get('secret', None) == client_secret:
+            user = session.get('user', None)
+            login = session.get('login', user)
+            if user is not None:
+                return (user, login)
+        return None
+
     security.declarePrivate('extractCredentials')
     def extractCredentials(self, request):
-        """ Extract credentials from cookie or 'request'. """
+        """ Extract credentials from cookie or 'request'.
+        """
         credentials = {}
         cookie = request.get(self.cookie_name, '')
         if cookie and cookie != 'deleted':
-            session = self._get_session(request)
-            if session.get('auth_secret', None) == unquote(cookie):
-                login = session.get('login', None)
-                password = session.get('password', None)
-                if login and password:
-                    credentials['login'] = login
-                    credentials['password'] = password
-        if credentials:
-            credentials['remote_host'] = request.get('REMOTE_HOST', '')
+            credentials['remote_cookie'] = cookie
             credentials['remote_address'] = request.getClientAddr()
 
         return credentials
 
-    security.declarePrivate('updateCredentials')
-    def updateCredentials(self, request, response, login, password):
+    security.declarePrivate('updateCookieCredentials')
+    def updateCookieCredentials(self, request, response, user, login):
         """Respond to change of credentials (NOOP for basic auth).
         """
         service = component.getUtility(ISecretService)
-        secret = service.digest(IClientId(request), login)
+        cookie = hashlib.sha1(str(IClientId(request)) + login).hexdigest()
+        secret = service.digest(cookie, request.getClientAddr())
         session = self._get_session(request)
-        session.set('auth_secret', secret)
+        session.set('secret', secret)
         session.set('login', login)
-        session.set('password', password)
+        session.set('user', user)
+
         expires = rfc1123_date(time.time() + self.lifetime)
-        response.setCookie(
-            self.cookie_name, quote(secret), path='/', expires=expires)
+        path = self._get_cookie_path(request)
+        response.setCookie(self.cookie_name, cookie, path=path, expires=expires)
+
+    security.declarePrivate('resetCredentials')
+    def resetCredentials(self, request, response):
+        """ Raise unauthorized to tell browser to clear credentials.
+        """
+        path = self._get_cookie_path(request)
+        response.expireCookie(self.cookie_name, path=path)
+
 
     security.declarePublic('login')
     def login(self):
@@ -194,16 +231,16 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
             pas = self._getPAS()
             if pas is not None:
                 for auth_id, auth in pas.plugins.listPlugins(
-                    IAuthenticationPlugin):
+                    plugins.IAuthenticationPlugin):
                     try:
-                        uid_and_info = auth.authenticateCredentials(
+                        uid_and_login = auth.authenticateCredentials(
                             credentials)
-                        if uid_and_info is None:
+                        if uid_and_login is None:
                             continue
-                        user_id, info = uid_and_info
-                        if user_id is not None:
-                            pas.updateCredentials(
-                                request, response, login, password)
+                        user, login = uid_and_login
+                        if user is not None:
+                            self.updateCookieCredentials(
+                                request, response, user, login)
                             authenticated = True
                             break
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:

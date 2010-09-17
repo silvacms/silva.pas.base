@@ -59,7 +59,7 @@ def registerUserFolder(root):
     plugins.activatePlugin(pas.IExtractionPlugin, 'cookie_auth')
     plugins.activatePlugin(pas.IChallengePlugin, 'cookie_auth')
     plugins.activatePlugin(pas.ICredentialsResetPlugin, 'cookie_auth')
-    plugins.activatePlugin(pas.ICredentialsUpdatePlugin, 'cookie_auth')
+    plugins.activatePlugin(pas.IAuthenticationPlugin, 'cookie_auth')
     plugins.activatePlugin(pas.IAuthenticationPlugin, 'users')
     plugins.activatePlugin(pas.IAuthenticationPlugin, 'zope')
     plugins.activatePlugin(pas.IUserAdderPlugin, 'users')
