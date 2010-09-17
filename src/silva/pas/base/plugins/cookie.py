@@ -50,7 +50,7 @@ class SilvaCookieAuthHelper(BasePlugin):
     implements(ICookiePlugin)
 
     # Customize configuration
-    cookie_name='__ac_silva'
+    cookie_name = '__ac_silva'
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
     _properties = ({'id'    : 'title',
