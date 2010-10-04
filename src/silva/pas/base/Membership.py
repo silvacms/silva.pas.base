@@ -104,6 +104,10 @@ class MemberService(SimpleMemberService):
             if member is None:
                 members.manage_addProduct['Silva'].manage_addSimpleMember(id)
                 member = getattr(members, id)
+                if 'title' in user:
+                    member.set_fullname(user['title'])
+                if 'email' in user:
+                    member.set_email(user['email'])
             result.append(member.__of__(self))
 
         return result
