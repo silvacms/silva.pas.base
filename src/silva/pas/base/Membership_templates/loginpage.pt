@@ -9,17 +9,17 @@
   </p>
   <p tal:condition="not: request/login_status|nothing"
      i18n:translate="">
-    The page you are trying to access is protected. Authenticate
-    yourself and the access may be granted to you !
+    The page you are trying to access is protected. Please
+    authenticate and the access may be granted.
   </p>
 
   <form method="post" action="#"
         tal:attributes="action request/action">
-
     <input type="hidden" name="came_from" value=""
            tal:attributes="value request/came_from | string:"/>
     <input type="hidden" name="__ac_secret" value=""
            tal:attributes="value request/secret | string:"/>
+
     <table cellpadding="2">
       <tr>
         <td><label for="name" i18n:translate="">Login</label></td>
@@ -32,8 +32,8 @@
                    id="password" name="__ac_password" /></td>
       </tr>
       <tr>
-        <td colspan="2">
-          <br />
+        <td></td>
+        <td>
           <input type="submit" value="Log In"
                  i18n:attributes="value" />
         </td>
