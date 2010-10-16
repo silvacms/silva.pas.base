@@ -34,7 +34,7 @@
       <tr>
         <td></td>
         <td>
-          <input type="submit" value="Log In"
+          <input class="button" type="submit" value="Log In"
                  i18n:attributes="value" />
         </td>
       </tr>
