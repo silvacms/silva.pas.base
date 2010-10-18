@@ -20,7 +20,7 @@
     <input type="hidden" name="__ac_secret" value=""
            tal:attributes="value request/secret | string:"/>
 
-    <table cellpadding="2">
+    <table>
       <tr>
         <td><label for="name" i18n:translate="">Login</label></td>
         <td><input type="text"  size="30"
