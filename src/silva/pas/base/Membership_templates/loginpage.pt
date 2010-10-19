@@ -1,6 +1,6 @@
 <div class="login-form"
      i18n:domain="silva">
-  <h2 i18n:translate="">Log in with an existing account</h2>
+  <h2 i18n:translate="">Protected area</h2>
 
   <p style="color: red; font-weight: bold"
      tal:condition="request/login_status | nothing"
@@ -9,8 +9,8 @@
   </p>
   <p tal:condition="not: request/login_status|nothing"
      i18n:translate="">
-    The page you are trying to access is protected. Please
-    authenticate yourself.
+    The page you are trying to visit has restricted access. Please
+    authenticate.
   </p>
 
   <form method="post" action="#"
@@ -22,7 +22,7 @@
 
     <table>
       <tr>
-        <th colspan="2">Log in to the site</th>
+        <th colspan="2" i18n:translate="">Log in to the site</th>
       </tr>
       <tr>
         <td><label for="name" i18n:translate="">User name</label></td>
