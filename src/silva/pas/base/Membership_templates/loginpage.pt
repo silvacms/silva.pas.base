@@ -10,7 +10,7 @@
   <p tal:condition="not: request/login_status|nothing"
      i18n:translate="">
     The page you are trying to access is protected. Please
-    authenticate and the access may be granted.
+    authenticate yourself.
   </p>
 
   <form method="post" action="#"
