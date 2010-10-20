@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.6.0 (unreleased)
+1.6.0 (2010/10/20)
 ------------------
 
 * Update code to use Zope 2.12.
@@ -16,21 +16,21 @@ Changelog
 * Update the cookie plugin: the login is now a page that is rendered
   inside the public layout.
 
-* The member service have been extends to support PAS group. This is
+* The member service have been extends to support PAS groups. This is
   now the official method to implement groups in Silva.
 
-1.5.2 (2009-12-09)
+1.5.2 (2009/12/09)
 ------------------
 
 * Set a lifetime to the cookie set by SilvaCookieAuthHelper. [antonin]
 
-1.5.1 (2009-03-20)
+1.5.1 (2009/03/20)
 ------------------
 
 * Always unquote came_from when it's fetched from the request in the
   logout link. Some proxy requote it more. [sylvain]
 
-1.5 (2009-03-05)
+1.5 (2009/03/05)
 ----------------
 
 * Support for local users. [sylvain]
@@ -51,18 +51,18 @@ Changelog
   known you have been logged out). [sylvain]
 
 
-1.2 (2008-11-20)
+1.2 (2008/11/20)
 ----------------
 
 * Fix authentication validation in cookie helper. [sylvain]
 
-1.1.1 (2008-08-25)
+1.1.1 (2008/08/25)
 ------------------
 
 * Fix an error when you ask a member which doesn't exist and use the direct
   lookup mode in Silva. [sylvain]
 
-1.1 (2008-06-04)
+1.1 (2008/06/04)
 ----------------
 
 * Add a silva cookie auth helper which check that you type user and password,
@@ -72,7 +72,7 @@ Changelog
 * Add translation markers.
 
 
-1.0 (2008-05-27)
+1.0 (2008/05/27)
 ----------------
 
 * Initial version
