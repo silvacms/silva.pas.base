@@ -9,6 +9,16 @@ Changelog
 * Remove deprecation under Silva 2.3. This is now the required minimal
   version. We now use Grok to register ourselves.
 
+* Update the cookie plugin: the username and password are no longer
+  contained in the cookie, but a secret validated against the Silva
+  Secret Service.
+
+* Update the cookie plugin: the login is now a page that is rendered
+  inside the public layout.
+
+* The member service have been extends to support PAS group. This is
+  now the official method to implement groups in Silva.
+
 1.5.2 (2009-12-09)
 ------------------
 

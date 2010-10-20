@@ -5,8 +5,11 @@ This package provides a new service for PluggableAuthService (PAS)
 integration in Silva. Installing it will also create a new PAS
 *acl_user* for the Silva Root, pre-configured to add users in it.
 
-This extension require at least `Silva`_ 2.1.2 or higher. For previous
-release of Silva, please use ``silva.pas.base`` 1.2.
+In a Silva instance, you cannot mix PAS *acl_user* and regular Zope 2
+one.
+
+This extension require at least `Silva`_ 2.3 or higher. For previous
+release of Silva, please use previous versions of ``silva.pas.base``.
 
 Installation
 ============
@@ -31,15 +34,6 @@ profile you use.
 After you can restart buildout::
 
   $ ./bin/buildout
-
-
-If you don't use buildout, you can install this extension using
-``easy_install``, and after create a file called
-``silva.pas.base-configure.zcml`` in the
-``/path/to/instance/etc/package-includes`` directory.  This file will
-responsible to load the extension and should only contain this::
-
-  <include package="silva.pas.base" />
 
 
 Latest version
