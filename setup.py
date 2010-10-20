@@ -7,6 +7,10 @@ import os
 
 version = '1.6dev'
 
+tests_require = [
+    'Products.Silva [test]',
+    ]
+
 setup(name='silva.pas.base',
       version=version,
       description="Base PluggableAuthService support for Silva",
@@ -51,5 +55,7 @@ setup(name='silva.pas.base',
       entry_points = """
       [zodbupdate]
       renames = silva.pas.base:CLASS_CHANGES
-      """
+      """,
+      tests_require = tests_require,
+      extras_require = {'test': tests_require},
       )
