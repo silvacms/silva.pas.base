@@ -22,7 +22,8 @@
 
     <table>
       <tr>
-        <th colspan="2" i18n:translate="">Log in to the site</th>
+        <th colspan="2" style="text-align:left"
+          i18n:translate="">Log in to the site</th>
       </tr>
       <tr>
         <td><label for="name" i18n:translate="">User name</label></td>
@@ -35,7 +36,9 @@
                    id="password" name="__ac_password" /></td>
       </tr>
       <tr class="controls">
-        <td colspan="2">
+        <td>
+        </td>
+        <td>
           <input class="button" type="submit" value="Log In"
                  i18n:attributes="value" />
         </td>
