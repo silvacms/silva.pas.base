@@ -1,14 +1,24 @@
 <div class="login-form"
      i18n:domain="silva">
+<style type="text/css">
+div.localalert {
+  color: red;
+  font-weight: bold;
+} /* override this local style with a div.warning selector in your css */
+</style>
+
   <h2 i18n:translate="">Protected area</h2>
 
-  <p style="color: red; font-weight: bold"
-     tal:condition="request/login_status | nothing"
-     tal:content="request/login_status">
-    Status
-  </p>
+  <div class="localalert"
+    tal:define="message request/login_status | nothing"
+    tal:condition="message">
+    <div class="feedback warning"
+      tal:content="message">
+      status
+    </div>
+  </div>
   <p tal:condition="not: request/login_status|nothing"
-     i18n:translate="">
+    i18n:translate="">
     The page you are trying to visit has restricted access. Please
     authenticate.
   </p>
@@ -28,16 +38,14 @@
       </tr>
       <tr>
         <td><label for="name" i18n:translate="">User name</label></td>
-        <td>
-          <input type="text"  size="30"
-            id="name" name="__ac_name" />
-        </td>
+        <td><input type="text" size="30" id="name" name="__ac_name" /></td>
       </tr>
       <tr>
         <td><label for="password" i18n:translate="">Password</label></td>
         <td>
           <input type="password"  size="30"
-            id="password" name="__ac_password" /></td>
+            id="password" name="__ac_password" />
+        </td>
       </tr>
       <tr class="controls">
         <td></td>
