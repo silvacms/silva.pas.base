@@ -1,7 +1,7 @@
 <div class="login-form"
      i18n:domain="silva">
 <style type="text/css">
-div.localalert {
+div.localwarning {
   color: red;
   font-weight: bold;
 } /* override this local style with a div.warning selector in your css */
@@ -9,7 +9,7 @@ div.localalert {
 
   <h2 i18n:translate="">Protected area</h2>
 
-  <div class="localalert"
+  <div class="localwarning"
     tal:define="message request/login_status | nothing"
     tal:condition="message">
     <div class="feedback warning"
