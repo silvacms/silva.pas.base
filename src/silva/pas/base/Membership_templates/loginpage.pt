@@ -22,22 +22,25 @@
 
     <table>
       <tr>
-        <th colspan="2" style="text-align:left"
-          i18n:translate="">Log in to the site</th>
+        <td class="form-title" colspan="2">
+          <label for="name" i18n:translate="">Log in to the site</label>
+        </td>
       </tr>
       <tr>
         <td><label for="name" i18n:translate="">User name</label></td>
-        <td><input type="text"  size="30"
-                   id="name" name="__ac_name" /></td>
+        <td>
+          <input type="text"  size="30"
+            id="name" name="__ac_name" />
+        </td>
       </tr>
       <tr>
         <td><label for="password" i18n:translate="">Password</label></td>
-        <td><input type="password"  size="30"
-                   id="password" name="__ac_password" /></td>
+        <td>
+          <input type="password"  size="30"
+            id="password" name="__ac_password" /></td>
       </tr>
       <tr class="controls">
-        <td>
-        </td>
+        <td></td>
         <td>
           <input class="button" type="submit" value="Log In"
                  i18n:attributes="value" />
