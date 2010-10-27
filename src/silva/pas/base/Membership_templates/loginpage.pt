@@ -19,7 +19,7 @@
     authenticate.
   </p>
 
-  <form method="post" action="#"
+  <form method="post" action="#" name="login_form"
         tal:attributes="action request/action">
     <input type="hidden" name="came_from" value=""
            tal:attributes="value request/came_from | string:"/>
@@ -33,7 +33,7 @@
         </td>
       </tr>
       <tr>
-        <td><label for="name" i18n:translate="">User name</label></td>
+        <td><label for="name" i18n:translate="">Username</label></td>
         <td><input type="text" size="30" id="name" name="__ac_name" /></td>
       </tr>
       <tr>
@@ -53,4 +53,11 @@
     </table>
 
   </form>
+<script language="JavaScript">
+<!--
+if (document.login_form) {
+document.login_form.__ac_name.focus();
+}
+// -->
+</script>
 </div>
