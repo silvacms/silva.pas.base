@@ -12,7 +12,7 @@
   <div class="public">
     <h3 i18n:translate=""> Log in with an existing account </h3>
 
-    <p style="color: red; font-weight: bold" 
+    <p style="color: red; font-weight: bold"
        tal:condition="request/login_status | nothing"
        tal:content="request/login_status">
       Status
@@ -22,26 +22,42 @@
           tal:attributes="action string:${here/absolute_url}/login">
 
       <input type="hidden" name="came_from" value=""
-             tal:attributes="value request/came_from | string:"/>
-      <table cellpadding="2">
-        <tr>
-          <td><b i18n:translate="">Login:</b> </td>
-          <td><input type="text" name="__ac_name" size="30" /></td>
-        </tr>
-        <tr>
-          <td><b i18n:translate="">Password:</b></td>
-          <td><input type="password" name="__ac_password" size="30" /></td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <br />
+             tal:attributes="value request/came_from | string:" />
+
+      <div class="form">
+
+        <div class="form-element">
+          <div class="form-title form-label">
+            <label for="name"><b i18n:translate="">Login:</b></label>
+          </div>
+          <div class="form-field">
+            <input id="name" type="text" name="__ac_name" size="30" />
+          </div>
+        </div>
+
+        <div class="form-element">
+          <div class="form-label">
+            <label for="password"><b i18n:translate="">Password:</b></label>
+          </div>
+          <div class="form-field">
+            <input id="password" type="password" name="__ac_password" size="30" />
+          </div>
+        </div>
+
+        <div class="form-element">
+          <div class="from-field form-actions">
+            <input class="button cancel" type="button" value="Cancel"
+                   onClick="history.go(-1)"
+                   i18n:attributes="value" />
             <input type="submit" value=" Log In "
                    i18n:attributes="value" />
-          </td>
-        </tr>
-      </table>
+          </div>
+        </div>
+
+      </div>
 
     </form>
+
   </div>
 </body>
 </html>
