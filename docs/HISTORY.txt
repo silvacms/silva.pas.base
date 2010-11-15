@@ -1,10 +1,10 @@
 Changelog
 =========
 
-1.5.3 (unreleased)
+1.5.3 (2010-11-15)
 ------------------
 
-* ...
+* Tableless login form with Cancel button.
 
 1.5.2 (2009-12-09)
 ------------------
