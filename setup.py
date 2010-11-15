@@ -1,11 +1,11 @@
-# Copyright (c) 2008 Infrae. All rights reserved.
+# Copyright (c) 2010 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
 
 from setuptools import setup, find_packages
 import os
 
-version = '1.5.3dev'
+version = '1.5.3'
 
 setup(name='silva.pas.base',
       version=version,
