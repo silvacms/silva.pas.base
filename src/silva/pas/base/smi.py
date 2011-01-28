@@ -14,7 +14,7 @@ from Products.Silva.Security import UnauthorizedRoleAssignement
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
-from silva.core.services.interfaces import IGroupService
+from silva.core.services.interfaces import IGroupService, MemberLookupError
 from silva.core.smi.access import AccessTab, IGrantRoleSchema
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
@@ -56,14 +56,18 @@ class LookupGroupAction(silvaforms.Action):
         groupname = data.getDefault('group').strip()
 
         service = component.getUtility(IGroupService)
-
-        store = SessionStore(form.request)
         groups = set()
         new_groups = set()
-        for group in service.find_groups(groupname, location=form.context):
-            groupid = group.groupid()
-            groups.add(groupid)
-            new_groups.add(groupid)
+        try:
+            for group in service.find_groups(groupname, location=form.context):
+                groupid = group.groupid()
+                groups.add(groupid)
+                new_groups.add(groupid)
+        except MemberLookupError as error:
+            form.send_message(error.args[0], type="error")
+            return silvaforms.FAILURE
+
+        store = SessionStore(form.request)
         if new_groups:
             groups = store.get(GROUP_STORE_KEY, set()).union(groups)
             store.set(GROUP_STORE_KEY, groups)
