@@ -1,12 +1,14 @@
 Changelog
 =========
 
-1.6.1 (unreleased)
+1.6.1 (2010-02-07)
 ------------------
 
-* ...
+* Update code to use new member service API (MemberErrorLookup).
 
-1.6.0 (2010/10/20)
+* Refactor login form HTML (complete change to use div).
+
+1.6.0 (2010-10-20)
 ------------------
 
 * Update code to use Zope 2.12.
