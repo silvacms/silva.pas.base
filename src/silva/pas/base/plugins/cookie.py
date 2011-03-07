@@ -104,13 +104,10 @@ class SilvaCookieAuthHelper(BasePlugin):
     def _get_cookie_path(self, request):
         return IVirtualSite(request).get_root().absolute_url_path()
 
-    def unauthorized(self, login_status=None):
+    def unauthorized(self, request, response, login_status=None):
         service = component.queryUtility(ISecretService)
         if service is None:
-            return 0
-
-        request = self.REQUEST
-        response = request['RESPONSE']
+            return False
 
         # If we set the auth cookie before, delete it now.
         if response.cookies.has_key(self.cookie_name):
@@ -118,7 +115,7 @@ class SilvaCookieAuthHelper(BasePlugin):
         # Get the login page.
         page = self._get_login_page(request)
         if page is None:
-            return 0
+            return False
         came_from = request.get('came_from', None)
 
         if came_from is None:
@@ -151,12 +148,16 @@ class SilvaCookieAuthHelper(BasePlugin):
         # It is not very nice but we don't have lot of choice.
         response.setStatus(401)
         response.write(page())
-        return 1
+        return True
 
     security.declarePrivate('challenge')
     def challenge(self, request, response, **kw):
         """ Challenge the user for credentials. """
-        return self.unauthorized()
+        if request is None:
+            request = self.REQUEST
+        if response is None:
+            response = request['RESPONSE']
+        return self.unauthorized(request, response)
 
     security.declarePrivate('authenticateCredentials')
     def authenticateCredentials(self, credentials):
@@ -226,13 +227,19 @@ class SilvaCookieAuthHelper(BasePlugin):
         authenticated = False
 
         if (not login) or (not password):
-            return self.unauthorized(
+            self.unauthorized(
+                request=request,
+                response=response,
                 login_status=u"You need to provide a login and a password.")
+            return
         else:
             stored_secret = self._get_session(request).get('secret', None)
             if (stored_secret != secret) or request.method != 'POST':
-                return self.unauthorized(
+                self.unauthorized(
+                    request = request,
+                    response=response,
                     login_status=u"Invalid login or password")
+                return
             credentials = {'login': login, 'password': password,}
             pas = self._getPAS()
             if pas is not None:
@@ -253,8 +260,11 @@ class SilvaCookieAuthHelper(BasePlugin):
                         continue
             if authenticated:
                 return response.redirect(request.form['came_from'])
-            return self.unauthorized(
+            self.unauthorized(
+                request=request,
+                response=response,
                 login_status=u"Invalid login or password")
+            return
 
 
 InitializeClass(SilvaCookieAuthHelper)
