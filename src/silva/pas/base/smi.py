@@ -15,7 +15,7 @@ from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
 from silva.core.services.interfaces import IGroupService, MemberLookupError
-from silva.core.smi.access import AccessTab, IGrantRoleSchema
+from silva.core.smi.settings.access import AccessTab, IGrantRoleSchema
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
