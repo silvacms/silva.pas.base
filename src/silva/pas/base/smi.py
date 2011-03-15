@@ -44,7 +44,7 @@ class ILookupGroupSchema(interface.Interface):
 
 class LookupGroupAction(silvaforms.Action):
     grok.implements(IRESTCloseOnSuccessAction, IRESTRefreshAction)
-    refresh = 'form-grouprole'
+    refresh = 'form.grouprole.lookupgroupresultform'
 
     title = _(u"lookup group")
     description=_(u"search for groups in order to assign them roles")
