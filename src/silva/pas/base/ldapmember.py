@@ -8,6 +8,8 @@ from silva.pas.base.interfaces import (IMemberFactory, IFormFieldFactory,
                                        ILDAPMember)
 from Products.Silva.SimpleMembership import SimpleMember
 from zeam.form import silva as silvaforms
+from Products.PluggableAuthService.interfaces.authservice import \
+    IPluggableAuthService
 
 class LDAPMember(SimpleMember):
     """ldap member get's it's attributes from LDAP, I.E. the 
@@ -21,6 +23,26 @@ class LDAPMember(SimpleMember):
     def __init__(self, id):
         super(LDAPMember, self).__init__(id)
         self._email = "ldap"
+        
+    def email(self):
+        """email from ldap"""
+        pas = getattr(self, 'acl_users')
+        if not IPluggableAuthService.providedBy(pas):
+            raise RuntimeError, "Expect to be used with a PAS acl user"
+        user = pas.getUser(self.userid())
+        user.getPropertysheet('bethelad').getProperty('first_name')
+        # also listPropertysheets() and proeprtyIds()
+        return 'blah'
+        
+    
+    def fullname(self):
+        """fullname from ldap"""
+        
+    def set_fullname(self, fullname):
+        raise NotImplemented
+    
+    def set_email(self):
+        raise NotImplemented
 
 
 def manage_addLDAPMember(self, id, REQUEST=None):
