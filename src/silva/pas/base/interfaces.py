@@ -4,7 +4,7 @@
 
 from zope.interface import Interface
 from silva.core.services.interfaces import IMemberService, IGroupService
-
+from silva.core.interfaces.auth import IEditableMember
 
 class IPASService(IMemberService, IGroupService):
     """Mark PAS Service Membership.
@@ -28,3 +28,24 @@ class IUserConverter(Interface):
     def convert(userid):
         """Return the converted userid.
         """
+
+class IMemberFactory(Interface):
+    """Factory used to create a member for a specific type of user.
+       Member factories should have the name of the PAS plugin they're
+       supporing.
+    """
+    
+    def create(self, userid):
+        """Create a Member object for the supplied userid"""
+        
+
+class IFormFieldFactory(Interface):
+    """Registered on a Silva Member interface (e.g. ISimpleMember),
+       to create the silvaforms.Fields object for that type of member"""
+    def get_fields():
+        """return a silvaforms.Fields object for the user info schema 
+           for a type of Silva Member"""
+        
+class ILDAPMember(IEditableMember):
+    """an LDAPMember is an IEditableMember, but MOST of the schema is readonly
+    """

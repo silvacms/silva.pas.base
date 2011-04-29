@@ -18,11 +18,12 @@ from Products.PluggableAuthService.interfaces.plugins import \
     IGroupEnumerationPlugin
 
 from five import grok
+from zope.component import getUtilitiesFor
 from silva.core import conf as silvaconf
 from silva.core.views import views as silvaviews
-from silva.core.interfaces.auth import IGroup
-from silva.pas.base.interfaces import IPASService, IUserConverter
-from zope.component import getUtilitiesFor
+from silva.core.interfaces.auth import IGroup, IEditableMember
+from silva.pas.base.interfaces import (IPASService, IUserConverter,
+                                       IMemberFactory)
 
 
 class Group(object):
@@ -40,7 +41,6 @@ class Group(object):
 
     def allowed_roles(self):
         return roleinfo.ASSIGNABLE_ROLES
-
 
 
 class MemberService(SimpleMemberService):
@@ -73,8 +73,22 @@ class MemberService(SimpleMemberService):
     security.declareProtected(
         SilvaPermissions.AccessContentsInformation, 'get_member')
     def get_member(self, userid, location=None):
-        return super(MemberService, self).get_member(
-            self._convert_userid(userid), location=location)
+        """get the silva member for the userid.  If the member does not yet
+           exist, try to create the member usings a MemberUserFactory registered
+           on the pas plugin type.  E.g. if the member is sourced from LDAP,
+           create an LDAP user"""
+        members = self.Members.aq_inner.aq_explicit
+        member = getattr(members, userid, None)
+        if member is None:
+            plugin = self.get_user_enumeration_plugin(userid)
+            if not plugin:
+                #no plugin, fallback to SimpleMember
+                members.manage_addProduct['Silva'].manage_addSimpleMember(userid)
+                member = getattr(members, userid)
+            else:
+                factory = IMemberFactory(plugin)
+                member = factory.create(self.Members, userid)
+        return member
 
     security.declareProtected(
         SilvaPermissions.AccessContentsInformation, 'is_user')
@@ -86,6 +100,22 @@ class MemberService(SimpleMemberService):
         # more than one user found.
         return (len(pas.searchUsers(
                     exact_match=True, id=self._convert_userid(userid))) > 0)
+
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'is_user')
+    def get_user_enumeration_plugin(self, userid, location=None):
+        """get the user enumeration plugin which returned the first user
+           from the search
+        """
+        pas = self._get_pas(location=location)
+        # If you use the silva membership user enumerater, you can get
+        # more than one user found.
+        users = pas.searchUsers(
+            exact_match=True, id=self._convert_userid(userid))
+        if len(users):
+            pluginid = users[0]['pluginid']
+            plugin = getattr(pas, pluginid)
+            return plugin
 
     security.declareProtected(
         SilvaPermissions.ApproveSilvaContent, 'find_members')
