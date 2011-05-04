@@ -75,20 +75,23 @@ class MemberService(SimpleMemberService):
     def get_member(self, userid, location=None):
         """get the silva member for the userid.  If the member does not yet
            exist, try to create the member usings a MemberUserFactory registered
-           on the pas plugin type.  E.g. if the member is sourced from LDAP,
-           create an LDAP user"""
+           on type of acl_users object.  E.g. if acl_users is a pluggable auth
+           service, create a PASMember"""
         members = self.Members.aq_inner.aq_explicit
         member = getattr(members, userid, None)
         if member is None:
-            plugin = self.get_user_enumeration_plugin(userid)
-            if not plugin:
-                #no plugin, fallback to SimpleMember
-                members.manage_addProduct['Silva'].manage_addSimpleMember(userid)
-                member = getattr(members, userid)
-            else:
-                factory = IMemberFactory(plugin)
-                member = factory.create(self.Members, userid)
-        return member
+            #this will raise a runtime error if the nearest acl_users it not pas
+            pas = self._get_pas()
+            factory = IMemberFactory(pas)
+            member = factory.create(self.Members, userid)
+            #XXX catch error, add simplemember instead?? but everything should
+            # be pas in 2.3, so maybe simplemember should go away?
+            ##no plugin, fallback to SimpleMember
+            #members.manage_addProduct['Silva'].manage_addSimpleMember(userid)
+            #member = getattr(members, userid)
+            return member
+        else:
+            return member
 
     security.declareProtected(
         SilvaPermissions.AccessContentsInformation, 'is_user')
