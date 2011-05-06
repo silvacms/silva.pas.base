@@ -72,15 +72,13 @@ class PASMember(SimpleMember):
         
     def set_fullname(self, fullname):
         """only allow setting fullname if there is no fullname pas property"""
-        if self.__get_property__('fullname') is not marker:
-            raise NotImplemented
-        return super(PASMember, self).set_fullname(fullname)
+        if self.__get_property__('fullname') is marker:
+            return super(PASMember, self).set_fullname(fullname)
     
     def set_email(self, email):
         """only allow setting fullname if there is no fullname pas property"""
-        if self.__get_property__('email') is not marker:
-            raise NotImplemented
-        return super(PASMember, self).set_email(email)
+        if self.__get_property__('email') is marker:
+            return super(PASMember, self).set_email(email)
     
     def can_edit_property(self, prop):
         """returns True if the property is editable.  This is only possible

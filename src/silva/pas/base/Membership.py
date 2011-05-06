@@ -92,7 +92,7 @@ class MemberService(SimpleMemberService):
             return member
         else:
             return member
-
+    
     security.declareProtected(
         SilvaPermissions.AccessContentsInformation, 'is_user')
     def is_user(self, userid, location=None):
@@ -123,10 +123,11 @@ class MemberService(SimpleMemberService):
     security.declareProtected(
         SilvaPermissions.ApproveSilvaContent, 'find_members')
     def find_members(self, search_string, location=None):
-        """Search for members
-        """
+        """Search for members.  Override SimpleMember method in order to 
+           add a PAS member when appropriate"""
         root = self.get_root()
         pas = self._get_pas(location=location)
+        factory = IMemberFactory(pas)
         members = getattr(root, 'Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
@@ -135,12 +136,21 @@ class MemberService(SimpleMemberService):
             id = user['userid']
             member = getattr(members, id, None)
             if member is None:
-                members.manage_addProduct['Silva'].manage_addSimpleMember(id)
-                member = getattr(members, id)
+                member = factory.create(members, id)
+                #these are more for backwards-compatibility with SimpleMember.
+                # PASMembers get their attributes from PAS, and are not editable
+                # unless the attribute is missing in pas.  Will raise
+                # NotImplemented if attempting to set an un-settable proeprty
                 if 'title' in user:
-                    member.set_fullname(user['title'])
+                    try:
+                        member.set_fullname(user['title'])
+                    except NotImplemented:
+                        pass
                 if 'email' in user:
-                    member.set_email(user['email'])
+                    try:
+                        member.set_email(user['email'])
+                    except NotImplemented:
+                        pass
             result.append(member.__of__(self))
 
         return result
