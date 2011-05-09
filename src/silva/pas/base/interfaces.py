@@ -10,10 +10,6 @@ class IPASService(IMemberService, IGroupService):
     """Mark PAS Service Membership.
     """
 
-# BBB
-IPASMemberService = IPASService
-from silva.core.services.interfaces import ISecretService
-
 
 class IUserConverter(Interface):
     """Some User can have userid incompatible with Silva SimpleMember.

@@ -46,13 +46,13 @@ class Group(object):
 class MemberService(SimpleMemberService):
     """Silva Member Service who delagates members search to PAS.
     """
-    security = ClassSecurityInfo()
-    grok.implements(IPASService)
-
     meta_type = 'Silva Pluggable Auth Service Member Service'
-    title = 'Silva Pluggable Auth Service Membership Service'
-
+    grok.implements(IPASService)
+    grok.name('service_members')
+    silvaconf.default_service()
     silvaconf.icon('Membership.png')
+
+    security = ClassSecurityInfo()
 
     def _convert_userid(self, userid):
         for name, utility in getUtilitiesFor(IUserConverter):
@@ -67,7 +67,7 @@ class MemberService(SimpleMemberService):
             location = self.get_root()
         pas = getattr(location, 'acl_users')
         if not IPluggableAuthService.providedBy(pas):
-            raise RuntimeError, "Expect to be used with a PAS acl user"
+            return None
         return pas
 
     security.declareProtected(
@@ -82,6 +82,8 @@ class MemberService(SimpleMemberService):
         """Check if the given user is a PAS user.
         """
         pas = self._get_pas(location=location)
+        if pas is None:
+            return False
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
         return (len(pas.searchUsers(
@@ -94,6 +96,8 @@ class MemberService(SimpleMemberService):
         """
         root = self.get_root()
         pas = self._get_pas(location=location)
+        if pas is None:
+            return []
         members = getattr(root, 'Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
@@ -118,6 +122,8 @@ class MemberService(SimpleMemberService):
         """Search for members
         """
         pas = self._get_pas(location=location)
+        if pas is None:
+            return []
         groups = pas.searchGroups(id=search_string, exact_match=False)
         result = []
         for group in groups:
@@ -128,6 +134,8 @@ class MemberService(SimpleMemberService):
         SilvaPermissions.ApproveSilvaContent, 'use_groups')
     def use_groups(self, location=None):
         pas = self._get_pas(location=location)
+        if pas is None:
+            return False
         return len(pas.plugins.listPlugins(IGroupEnumerationPlugin)) != 0
 
     security.declareProtected(
@@ -136,6 +144,8 @@ class MemberService(SimpleMemberService):
         """Check if the given user is a PAS group.
         """
         pas = self._get_pas(location=location)
+        if pas is None:
+            return False
         # You can retrieve a group from multiple sources
         return (len(pas.searchGroups(exact_match=True, id=groupid)) > 0)
 
@@ -143,6 +153,8 @@ class MemberService(SimpleMemberService):
         SilvaPermissions.AccessContentsInformation, 'get_group')
     def get_group(self, groupid, location=None):
         pas = self._get_pas(location=location)
+        if pas is None:
+            return None
         # You can retrieve a group from multiple sources
         groups = pas.searchGroups(exact_match=True, id=groupid)
         if not groups:
