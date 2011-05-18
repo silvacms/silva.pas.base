@@ -50,10 +50,10 @@
       <div class="form-element">
         <div class="form-field form-actions">
           <input class="button cancel" type="button" value="Cancel"
-            onClick="history.go(-1)"
+            name="cancel" onClick="history.go(-1)"
             i18n:attributes="value" />
           <input class="button submit" type="submit" value="Log in"
-            i18n:attributes="value" />
+            name="login" i18n:attributes="value" />
         </div>
       </div>
     </div>
