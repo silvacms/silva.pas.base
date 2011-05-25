@@ -2,36 +2,58 @@
 # See also LICENSE.txt
 # $Id$
 
-from five import grok
 from Products.PluggableAuthService.interfaces import plugins as pas
 from silva.pas.base.interfaces import IPASService
-from silva.core.interfaces import IRoot
-from silva.core.interfaces import IInstallRootEvent
 
-@grok.subscribe(IRoot, IInstallRootEvent)
-def configure_service(root, event):
-    installed_ids = root.objectIds()
 
-    if 'Members' not in installed_ids:
-        root.manage_addProduct['BTreeFolder2'].manage_addBTreeFolder('Members')
+def install(root):
+    """Install PAS Support.
+    """
+    # set up acl_users if needed
+    registerUserFolder(root)
 
-    if 'acl_users' in installed_ids:
-        # if there is another user folder already available, don't touch it
+    # set up service_members if needed
+    registerServiceMembers(root)
+
+
+def uninstall(root):
+    """Uninstall PAS Support.
+    """
+    # remove special member service and install default silva one
+    oids = root.objectIds()
+    delete_objects = []
+    for service in ['service_members']:
+        if service in oids:
+            delete_objects.append(service)
+    root.manage_delObjects(delete_objects)
+
+    factory = root.manage_addProduct['Silva']
+    factory.manage_addSimpleMemberService('service_members')
+
+
+def is_installed(root):
+    service = getattr(root, 'service_members', None)
+    return service is not None and IPASService.providedBy(service)
+
+
+def registerUserFolder(root):
+    # if there is another user folder already available, don't touch it
+    if getattr(root.aq_base, 'acl_users', None) is not None:
         return
 
     root.manage_addProduct['PluggableAuthService'].addPluggableAuthService()
     acl_users = root.acl_users
-    factory = acl_users.manage_addProduct['silva.pas.base']
+    add_product = acl_users.manage_addProduct['silva.pas.base']
     # Add cookie storage for auth
-    factory.manage_addSilvaCookieAuthHelper('cookie_auth')
-    factory = acl_users.manage_addProduct['PluggableAuthService']
+    add_product.manage_addSilvaCookieAuthHelper('cookie_auth')
+    add_product = acl_users.manage_addProduct['PluggableAuthService']
     # Add a user source
-    factory.addZODBUserManager('users')
+    add_product.addZODBUserManager('users')
     # Add a role source
-    factory.addZODBRoleManager('roles')
+    add_product.addZODBRoleManager('roles')
     # Add a delegating source, to ask users to default Zope ACL
-    factory.manage_addDelegatingMultiPlugin(
-        'zope', delegate_path='/acl_users')
+    add_product.manage_addDelegatingMultiPlugin('zope',
+                                                delegate_path='/acl_users')
 
     plugins = acl_users.plugins
     plugins.activatePlugin(pas.IExtractionPlugin, 'cookie_auth')
@@ -65,8 +87,8 @@ def createDefaultSilvaRolesInPAS(plugin):
 def registerServiceMembers(root):
     if 'service_members' in root.objectIds():
         root.manage_delObjects(['service_members',])
-    factory = root.manage_addProduct['silva.pas.base']
-    factory.manage_addMemberService('service_members')
+    add_product = root.manage_addProduct['silva.pas.base']
+    add_product.manage_addMemberService('service_members')
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 # See also LICENSE.txt
 # $Id$
 
+from silva.pas.base import install
 from silva.pas.base.plugins import cookie, cascading
 from silva.core import conf as silvaconf
 
@@ -12,9 +13,8 @@ from AccessControl.Permissions import manage_users as ManageUsers
 registerMultiPlugin(cookie.SilvaCookieAuthHelper.meta_type)
 registerMultiPlugin(cascading.SilvaCascadingPASPlugin.meta_type)
 
-silvaconf.extension_name('silva.pas.base')
-silvaconf.extension_title('Silva Pluggable Auth Support')
-silvaconf.extension_system()
+silvaconf.extensionName('silva.pas.base')
+silvaconf.extensionTitle('Silva Pluggable Auth Service Support')
 
 
 def initialize(context):
