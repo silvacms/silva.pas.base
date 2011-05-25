@@ -4,7 +4,7 @@ Changelog
 1.6.2 (unreleased)
 ------------------
 
-* ...
+* Fix an Acquisition bug when looking for users.
 
 1.6.1 (2010-02-07)
 ------------------
