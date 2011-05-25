@@ -98,16 +98,16 @@ class MemberService(SimpleMemberService):
         pas = self._get_pas(location=location)
         if pas is None:
             return []
-        members = getattr(root, 'Members')
+        members = root._getOb('Members')
 
         users = pas.searchUsers(id=search_string, exact_match=False)
         result = []
         for user in users:
             id = user['userid']
-            member = getattr(members, id, None)
+            member = members._getOb(id, None)
             if member is None:
                 members.manage_addProduct['Silva'].manage_addSimpleMember(id)
-                member = getattr(members, id)
+                member = members._getOb(id)
                 if 'title' in user:
                     member.set_fullname(user['title'])
                 if 'email' in user:
