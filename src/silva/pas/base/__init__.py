@@ -24,14 +24,16 @@ def initialize(context):
         constructors=
         (cookie.manage_addSilvaCookieAuthHelperForm,
          cookie.manage_addSilvaCookieAuthHelper),
-        visibility=None)
+        visibility=None,
+        icon="www/cookie.png")
     context.registerClass(
         cascading.SilvaCascadingPASPlugin,
         permission=ManageUsers,
         constructors=
         (cascading.manage_addSilvaCascadingPASPluginForm,
          cascading.manage_addSilvaCascadingPASPlugin),
-        visibility=None)
+        visibility=None,
+        icon="www/cascading.png")
 
 
 CLASS_CHANGES = {
