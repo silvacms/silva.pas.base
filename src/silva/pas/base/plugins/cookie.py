@@ -17,6 +17,7 @@ from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from silva.pas.base.plugins.interfaces import ICookiePlugin
 
 from silva.core.cache.store import SessionStore
+from silva.core.interfaces import ISilvaObject
 from silva.core.layout.interfaces import IMetadata
 from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
@@ -88,13 +89,23 @@ class SilvaCookieAuthHelper(BasePlugin):
         alsoProvides(request, INonCachedLayer)
 
     def _get_login_page(self, request):
-        # Disable caching on the login page.
-        root = IVirtualSite(request).get_root()
+        parent = request.PARENTS and request.PARENTS[0]
+        if ISilvaObject.providedBy(parent):
+            root = parent.get_publication()
+        else:
+            root = IVirtualSite(request).get_root()
+
+        # Restory the public skin
         self._restore_public_skin(request, root)
 
         page = component.queryMultiAdapter(
-            (root, request), name=self.login_path)
+            (parent, request), name=self.login_path)
+        if page is None:
+            # No login page found here, try on the 'root'
+            page = component.queryMultiAdapter(
+                (root, request), name=self.login_path)
         if page is not None:
+            # Set parent for security check
             page.__parent__ = root
         return page
 
