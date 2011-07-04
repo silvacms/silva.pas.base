@@ -21,10 +21,10 @@
 
   <form method="post" action="#" name="login_form"
         tal:attributes="action request/action">
-    <input type="hidden" name="came_from" value=""
-           tal:attributes="value request/came_from | string:"/>
-    <input type="hidden" name="__ac_secret" value=""
-           tal:attributes="value request/secret | string:"/>
+    <input type="hidden" name="__ac.field.origin" value=""
+           tal:attributes="value request/__ac.field.origin | string:"/>
+    <input type="hidden" name="__ac.field.secret" value=""
+           tal:attributes="value request/__ac.field.secret | string:"/>
 
     <div class="form">
       <div class="form-title">
@@ -35,7 +35,7 @@
           <label for="name" i18n:translate="">Username</label>
         </div>
         <div class="form-field">
-          <input type="text" size="30" id="name" name="__ac_name" />
+          <input type="text" size="30" id="name" name="__ac.field.name" />
         </div>
       </div>
       <div class="form-element">
@@ -44,7 +44,7 @@
         </div>
         <div class="form-field">
           <input type="password"  size="30"
-            id="password" name="__ac_password" />
+            id="password" name="__ac.field.password" />
         </div>
       </div>
       <div class="form-element">
@@ -59,11 +59,4 @@
     </div>
 
   </form>
-<script language="JavaScript">
-<!--
-if (document.login_form) {
-document.login_form.__ac_name.focus();
-}
-// -->
-</script>
 </div>

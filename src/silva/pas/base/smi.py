@@ -11,6 +11,7 @@ from zope.cachedescriptors.property import CachedProperty
 
 from Products.Silva.Security import UnauthorizedRoleAssignement
 
+from silva.ui.rest import UIREST
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
@@ -21,6 +22,55 @@ from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
     IRESTCloseOnSuccessAction, IRESTRefreshAction, IRemoverAction)
 
+
+
+## Login form in SMI, in a popup
+
+class ILoginFields(interface.Interface):
+
+    name = schema.TextLine(
+        title=_(u"Login"),
+        required=True)
+    password = schema.TextLine(
+        title=_(u"Password"),
+        required=True)
+    secret = schema.TextLine(
+        title=u"Secret",
+        required=True)
+    origin = schema.TextLine(
+        title=u"Origin",
+        required=True)
+
+
+class LoginPage(silvaforms.PopupForm):
+    grok.context(UIREST)
+    grok.name('silva_login_form.html')
+    grok.require('zope2.Private')
+
+    prefix = '__ac'
+    label = _(u"Restricted access")
+    description = _(u"You need to login with new credentials in order to continue.")
+    fields = silvaforms.Fields(ILoginFields)
+    fields['secret'].mode = silvaforms.HIDDEN
+    fields['secret'].defaultValue = lambda f: f.request.get('__ac.field.secret')
+    fields['origin'].mode = silvaforms.HIDDEN
+    fields['origin'].defaultValue = lambda f: f.request.get('__ac.field.origin')
+    actions = silvaforms.Actions(
+        silvaforms.CancelAction())
+
+    @silvaforms.action(_(u"Login"))
+    def login(self):
+        # Empty action to create a submit button. form_url is changed
+        # below, the form will not be submitted here.
+        pass
+
+    def updateForm(self):
+        result = super(LoginPage, self).updateForm()
+        result['content']['form_url'] = self.request.action
+        return result
+
+
+## Group support
 
 GROUP_STORE_KEY = 'lookup group'
 

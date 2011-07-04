@@ -144,9 +144,9 @@ class SilvaCookieAuthHelper(BasePlugin):
         session.set('secret', secret)
 
         options = {}
-        options['secret'] = secret
+        options['__ac.field.secret'] = secret
+        options['__ac.field.origin'] = came_from
         options['action'] = self.absolute_url() + '/login'
-        options['came_from'] = came_from
         if login_status is None:
             login_status = request.form.get('login_status', None)
         if login_status is not None:
@@ -232,9 +232,9 @@ class SilvaCookieAuthHelper(BasePlugin):
         request = self.REQUEST
         response = request['RESPONSE']
 
-        login = request.form.get('__ac_name', '')
-        password = request.form.get('__ac_password', '')
-        secret = request.form.get('__ac_secret', '')
+        login = request.form.get('__ac.field.name', '')
+        password = request.form.get('__ac.field.password', '')
+        secret = request.form.get('__ac.field.secret', '')
         authenticated = False
 
         if (not login) or (not password):
@@ -270,7 +270,7 @@ class SilvaCookieAuthHelper(BasePlugin):
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
                         continue
             if authenticated:
-                return response.redirect(request.form['came_from'])
+                return response.redirect(request.form['__ac.field.origin'])
             self.unauthorized(
                 request=request,
                 response=response,

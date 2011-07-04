@@ -193,3 +193,4 @@ InitializeClass(MemberService)
 class LoginPage(silvaviews.Page):
     grok.name('silva_login_form.html')
     grok.require('zope2.Private')
+
