@@ -33,7 +33,7 @@ class ILoginFields(interface.Interface):
     name = schema.TextLine(
         title=_(u"Login"),
         required=True)
-    password = schema.TextLine(
+    password = schema.Password(
         title=_(u"Password"),
         required=True)
     secret = schema.TextLine(
@@ -77,6 +77,7 @@ class LoginPage(silvaforms.PopupForm):
 
     def updateForm(self):
         result = super(LoginPage, self).updateForm()
+        # Change the form url to the real login submit
         result['content']['form_url'] = self.request.action
         return result
 
