@@ -21,8 +21,7 @@ from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
-    IRESTCloseOnSendAction, IRESTCloseOnSuccessAction,
-    IRESTRefreshAction, IRemoverAction, IDefaultAction)
+    IRESTCloseOnSuccessAction, IRESTRefreshAction, IRemoverAction, IDefaultAction)
 
 
 
@@ -69,7 +68,7 @@ class LoginPage(silvaforms.PopupForm):
     actions = silvaforms.Actions(
         silvaforms.CancelAction())
 
-    @silvaforms.action(_(u"Login"), implements=(IRESTCloseOnSendAction, IDefaultAction))
+    @silvaforms.action(_(u"Login"), implements=IDefaultAction)
     def login(self):
         # Empty action to create a submit button. form_url is changed
         # below, the form will not be submitted here.
