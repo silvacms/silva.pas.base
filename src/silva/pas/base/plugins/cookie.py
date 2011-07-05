@@ -127,7 +127,7 @@ class SilvaCookieAuthHelper(BasePlugin):
         page = self._get_login_page(request)
         if page is None:
             return False
-        came_from = request.get('came_from', None)
+        came_from = request.get('__ac.field.origin', None)
 
         if came_from is None:
             came_from = request.get('URL', '')

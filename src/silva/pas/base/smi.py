@@ -17,10 +17,12 @@ from silva.core.interfaces import ISilvaObject
 from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
 from silva.core.services.interfaces import IGroupService, MemberLookupError
 from silva.core.smi.settings.access import Access, IGrantRoleSchema
+from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
-    IRESTCloseOnSuccessAction, IRESTRefreshAction, IRemoverAction)
+    IRESTCloseOnSendAction, IRESTCloseOnSuccessAction,
+    IRESTRefreshAction, IRemoverAction, IDefaultAction)
 
 
 
@@ -42,6 +44,15 @@ class ILoginFields(interface.Interface):
         required=True)
 
 
+def next_action_url(action):
+
+    def action_url(form):
+        root_url = IVirtualSite(form.request).get_root_url()
+        return '/'.join((root_url, '++rest++' + action))
+
+    return action_url
+
+
 class LoginPage(silvaforms.PopupForm):
     grok.context(UIREST)
     grok.name('silva_login_form.html')
@@ -52,13 +63,13 @@ class LoginPage(silvaforms.PopupForm):
     description = _(u"You need to login with new credentials in order to continue.")
     fields = silvaforms.Fields(ILoginFields)
     fields['secret'].mode = silvaforms.HIDDEN
-    fields['secret'].defaultValue = lambda f: f.request.get('__ac.field.secret')
     fields['origin'].mode = silvaforms.HIDDEN
-    fields['origin'].defaultValue = lambda f: f.request.get('__ac.field.origin')
+    fields['origin'].ignoreRequest = True
+    fields['origin'].defaultValue = next_action_url('silva.pas.base.loggedin')
     actions = silvaforms.Actions(
         silvaforms.CancelAction())
 
-    @silvaforms.action(_(u"Login"))
+    @silvaforms.action(_(u"Login"), implements=(IRESTCloseOnSendAction, IDefaultAction))
     def login(self):
         # Empty action to create a submit button. form_url is changed
         # below, the form will not be submitted here.
@@ -69,6 +80,18 @@ class LoginPage(silvaforms.PopupForm):
         result['content']['form_url'] = self.request.action
         return result
 
+
+class LoggedInMessage(UIREST):
+    grok.name('silva.pas.base.loggedin')
+
+    def GET(self):
+        """Return a message after the user successfully logged in.
+        """
+        return self.json_response({
+                'content': {
+                    'ifaces': ['message'],
+                    'title': self.translate(_(u'Logged in')),
+                    'message': self.translate(_(u'You are now authenticated.'))}})
 
 ## Group support
 
