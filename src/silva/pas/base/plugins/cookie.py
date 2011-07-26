@@ -155,6 +155,11 @@ class SilvaCookieAuthHelper(BasePlugin):
         """ Challenge the user for credentials. """
         if request is None:
             request = self.REQUEST
+        user_agent = request.get('HTTP_USER_AGENT')
+        if user_agent and user_agent.startswith('Python-urllib/'):
+            # We don't want to redirect to a login form if you are
+            # playing with urllib.
+            return False
         if response is None:
             response = request['RESPONSE']
         return self.unauthorized(request, response)
