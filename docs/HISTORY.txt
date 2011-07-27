@@ -1,8 +1,12 @@
 Changelog
 =========
 
-1.6.2 (unreleased)
+1.6.2 (2011-07-27)
 ------------------
+
+* Don't redirect urllib2 user agent to the login form.
+
+* Add nice icons.
 
 * Fix an Acquisition bug when looking for users.
 
