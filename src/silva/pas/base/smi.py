@@ -240,7 +240,7 @@ class GrantAccessAction(silvaforms.Action):
 class RevokeAccessAction(silvaforms.Action):
     grok.implements(IRemoverAction)
 
-    title = _(u"revoke role")
+    title = _(u"Revoke role")
     description=_(u"revoke the role of selected group(s)")
 
     def available(self, form):
