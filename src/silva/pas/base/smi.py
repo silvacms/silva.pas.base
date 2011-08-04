@@ -293,8 +293,8 @@ class GroupRoleForm(silvaforms.SMISubTableForm):
     fields['role'].available = lambda form: len(form.lines) != 0
     tableFields = silvaforms.Fields(IGroupAuthorization)
     tableActions = silvaforms.TableActions(
-        RevokeAccessAction(),
-        GrantAccessAction())
+        GrantAccessAction(),
+        RevokeAccessAction())
 
     def getItems(self):
         access = IAuthorizationManager(self.context)
@@ -311,7 +311,7 @@ class LookupGroupResultForm(GroupRoleForm):
 
     label = _(u"group clipboard")
     emptyDescription = _(u"Search for groups to assign them roles.")
-    actions = silvaforms.Actions(LookupGroupPopupAction())
+    actions = silvaforms.Actions()
     tableActions = silvaforms.TableActions(GrantAccessAction())
 
     @CachedProperty
@@ -335,3 +335,5 @@ class LookupGroupResultForm(GroupRoleForm):
         implements=IRemoverAction)
     def clear(self):
         self.store.set(GROUP_STORE_KEY, set())
+
+    actions += LookupGroupPopupAction()
