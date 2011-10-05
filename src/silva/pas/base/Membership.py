@@ -10,7 +10,7 @@ from App.class_init import InitializeClass
 
 # Silva
 from Products.Silva import roleinfo
-from Products.Silva import SilvaPermissions, mangle
+from Products.Silva import SilvaPermissions
 from Products.Silva.SimpleMembership import SimpleMemberService
 from Products.PluggableAuthService.interfaces.authservice import \
     IPluggableAuthService
@@ -182,8 +182,8 @@ class MemberService(SimpleMemberService):
         else:
             exit_url = root.absolute_url()
 
-        exit_url = mangle.urlencode(
-            exit_url, login_status=u"You have been logged out.")
+        exit_url += '?' + urllib.urlencode(
+            {'login_status': u"You have been logged out."})
         REQUEST.RESPONSE.redirect(exit_url)
 
 
