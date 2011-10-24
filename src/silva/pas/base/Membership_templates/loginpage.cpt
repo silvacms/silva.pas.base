@@ -4,7 +4,7 @@
   <h2 i18n:translate="">Protected area</h2>
 
   <div style="color:#f00; font-weight:bold;"
-    tal:define="message request/login_status | nothing"
+    tal:define="message request.get('login_status')"
     tal:condition="message">
     <!-- override the local style with a div.warning selector in your css -->
     <div class="feedback warning"
@@ -13,18 +13,18 @@
     </div>
   </div>
 
-  <p tal:condition="not: request/login_status | nothing"
+  <p tal:condition="not: request.get('login_status') | nothing"
     i18n:translate="">
     The page you are trying to visit has restricted access. Please
     authenticate.
   </p>
 
   <form method="post" action="#" name="login_form"
-        tal:attributes="action request/action">
+        tal:attributes="action request.action">
     <input type="hidden" name="__ac.field.origin" value=""
-           tal:attributes="value request/__ac.field.origin | string:"/>
+           tal:attributes="value request.get('__ac.field.origin')"/>
     <input type="hidden" name="__ac.field.secret" value=""
-           tal:attributes="value request/__ac.field.secret | string:"/>
+           tal:attributes="value request.get('__ac.field.secret')"/>
 
     <div class="form">
       <div class="form-title">
@@ -35,7 +35,8 @@
           <label for="name" i18n:translate="">Username</label>
         </div>
         <div class="form-field">
-          <input type="text" size="30" id="name" name="__ac.field.name" />
+          <input type="text" size="30" id="name" name="__ac.field.name"
+                 autofocus="autofocus"/>
         </div>
       </div>
       <div class="form-element">
@@ -53,7 +54,8 @@
             name="cancel" onClick="history.go(-1)"
             i18n:attributes="value" />
           <input class="button submit" type="submit" value="Log in"
-            name="login" i18n:attributes="value" />
+                 name="login"
+                 i18n:attributes="value" />
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@
   <include package="silva.core.views" />
   <include package="silva.core.layout" />
   <include package="silva.core.smi" />
+  <include package="megrok.chameleon" />
 
   <include package="Products.PluggableAuthService" file="meta.zcml" />
   <include package="Products.PluggableAuthService" />
