@@ -102,11 +102,13 @@ class SilvaCookieAuthHelper(BasePlugin):
             (parent, request), name=self.login_path)
         if page is None:
             # No login page found here, try on the 'root'
+            parent = root
             page = component.queryMultiAdapter(
-                (root, request), name=self.login_path)
+                (parent, request), name=self.login_path)
         if page is not None:
             # Set parent for security check
-            page.__parent__ = root
+            page.__parent__ = parent
+            page.__name__ = self.login_path
         return page
 
     def _get_session(self, request):

@@ -21,7 +21,8 @@ from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
-    IRESTCloseOnSuccessAction, IRESTRefreshAction, IRemoverAction, IDefaultAction)
+    IRESTCloseOnSuccessAction, IRESTRefreshAction,
+    IRemoverAction, IDefaultAction)
 
 
 
@@ -55,7 +56,9 @@ def next_action_url(action):
 class LoginPage(silvaforms.PopupForm):
     grok.context(UIREST)
     grok.name('silva_login_form.html')
-    grok.require('zope2.Private')
+    # You can view this login page as it is not possible to call with
+    # a different submit URL. This makes validation works.
+    grok.require('zope2.View')
 
     prefix = '__ac'
     label = _(u"Restricted access")
@@ -77,7 +80,7 @@ class LoginPage(silvaforms.PopupForm):
     def updateForm(self):
         result = super(LoginPage, self).updateForm()
         # Change the form url to the real login submit
-        result['content']['form_url'] = self.request.action
+        result['content']['submit_url'] = self.request.action
         return result
 
 
