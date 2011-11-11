@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.6.2dev'
+version = '3.0b1'
 
 tests_require = [
     'Products.Silva [test]',
@@ -46,12 +46,16 @@ setup(name='silva.pas.base',
         "silva.core.services",
         "silva.core.smi",
         "silva.core.views",
+        "silva.translations",
+        "silva.ui",
+        "zeam.form.silva",
+        "zope.cachedescriptors",
         "zope.component",
         "zope.datetime",
-        "zope.schema",
-        "zope.session",
         "zope.interface",
         "zope.publisher",
+        "zope.schema",
+        "zope.session",
         ],
       entry_points = """
       [zodbupdate]

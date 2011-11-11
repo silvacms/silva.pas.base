@@ -1,10 +1,14 @@
 Changelog
 =========
 
-1.6.2 (unreleased)
+3.0b1 (2011/11/11)
 ------------------
 
-* ...
+* Update for Zope 2.13 and Python 2.7.
+
+* Update SMI interfaces to use ``silva.ui``.
+
+* Improve cookie PAS plugin.
 
 1.6.1 (2010-02-07)
 ------------------
