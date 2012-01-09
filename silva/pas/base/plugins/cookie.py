@@ -71,7 +71,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
             came_from = req.get('came_from', None)
 
             if came_from is None:
-                came_from = req.get('URL', '')
+                came_from = req.get('ACTUAL_URL', '')
                 query = req.form.copy()
                 if query:
                     for bad in ['login_status', '-C']:
@@ -82,7 +82,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                         query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
                         came_from = mangle.urlencode(came_from, **query)
             else:
-                req_url = req.get('URL', '')
+                req_url = req.get('ACTUAL_URL', '')
 
                 if req_url and req_url == url:
                     return 0
