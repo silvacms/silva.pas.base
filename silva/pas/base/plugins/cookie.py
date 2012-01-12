@@ -2,6 +2,11 @@
 # See also LICENSE.txt
 # $Id$
 
+from base64 import encodestring
+from urllib import quote
+import urlparse
+import time
+
 from Products.PluggableAuthService.PluggableAuthService import \
     _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from Products.PluggableAuthService.interfaces.plugins import \
@@ -10,13 +15,13 @@ from Products.PluggableAuthService.plugins.CookieAuthHelper import \
     CookieAuthHelper
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.Silva import mangle
+from Products.Silva.adapters.virtualhosting import VirtualHostingAdapter
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Globals import InitializeClass
 
 from zope.datetime import rfc1123_date
-from base64 import encodestring
-from urllib import quote
-import time
+
+encode_url = lambda v: v.encode('ascii', 'xmlcharrefreplace')
 
 def manage_addSilvaCookieAuthHelper(self, id, title='',
                                     REQUEST=None, **kw):
@@ -37,6 +42,15 @@ manage_addSilvaCookieAuthHelperForm =  PageTemplateFile("../www/cookieAddForm",
                 globals(), __name__="manage_addSilvaCookieHelperForm")
 
 
+def find_root(context):
+    # Find the best looking root in this shitty world.
+    root = context.get_root()
+    virtual_root = VirtualHostingAdapter(root).getVirtualRoot()
+    if virtual_root is None:
+        return root
+    return virtual_root
+
+
 class SilvaCookieAuthHelper(CookieAuthHelper):
 
     meta_type = 'Silva Cookie Auth Helper'
@@ -46,10 +60,16 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
     cookie_name='__ac_silva'
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
-    _properties = CookieAuthHelper._properties + ({'id'    : 'lifetime',
-                                                   'label' : 'Life time (sec)',
-                                                   'type'  : 'int',
-                                                   'mode'  : 'w'},)
+    redirect_to_path = False
+    _properties = CookieAuthHelper._properties + (
+        {'id': 'lifetime',
+         'label': 'Life time (sec)',
+         'type': 'int',
+         'mode': 'w'},
+        {'id': 'redirect_to_path',
+         'label': 'Redirect to path instead of URL',
+         'type': 'boolean',
+         'mode': 'w'})
 
     security.declarePrivate('manage_afterAdd')
     def manage_afterAdd(self, item, container):
@@ -79,7 +99,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                             del query[bad]
                     if query:
                         keys, values = zip(*query.items())
-                        query = dict(zip(keys, map(lambda v: v.encode('ascii', 'xmlcharrefreplace'), values)))
+                        query = dict(zip(keys, map(encode_url, values)))
                         came_from = mangle.urlencode(came_from, **query)
             else:
                 req_url = req.get('ACTUAL_URL', '')
@@ -88,7 +108,13 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     return 0
 
             options = {}
-            options['came_from'] = came_from
+            if self.redirect_to_path:
+                # Only include the path
+                options['came_path'] = urlparse.urlunparse(
+                    (None, None) + urlparse.urlparse(came_from)[2:])
+            else:
+                options['came_from'] = came_from
+
             if login_status is None:
                 login_status = req.form.get('login_status', None)
             if login_status is not None:
@@ -143,8 +169,19 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
                         continue
 
-            came_from = request.form['came_from']
-            return response.redirect(came_from)
+            # Default to virtual host root
+            url = find_root(self).absolute_url()
+            if self.redirect_to_path:
+                came_path = request.form.get('came_path')
+                if came_path is not None:
+                    url = urlparse.urlunparse(
+                        urlparse.urlparse(url)[:2] +
+                        urlparse.urlparse(came_path)[2:])
+            else:
+                came_from = request.form.get('came_from')
+                if came_from is not None:
+                    url = came_from
+            return response.redirect(url)
 
 
 InitializeClass(SilvaCookieAuthHelper)
