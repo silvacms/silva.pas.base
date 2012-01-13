@@ -1,10 +1,16 @@
 Changelog
 =========
 
-1.5.4 (unreleased)
+1.5.4 (2012-01-13)
 ------------------
 
-* ...
+* Add an option 'Redirect to path', that compute the redirect URL
+  using the same hostname and protocol than the login form. This is
+  useful if you want to redirect logged in people to an other virtual
+  host.
+
+* Use ACTUAL_URL instead of URL to find the redirect URL. This is
+  useful to prevent some miscalculation in Zope URL computations.
 
 1.5.3 (2010-11-15)
 ------------------
