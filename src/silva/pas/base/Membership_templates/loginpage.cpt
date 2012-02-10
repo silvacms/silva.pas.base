@@ -62,7 +62,7 @@
 
     <script>
       <!-- Update location if there is an hash tag -->
-      if (window.location.hash) {
+      if (window.location.hash.length) {
           var origin = document.getElementsByName('__ac.field.origin');
           if (origin.length) {
               var target = origin[0].getAttribute('value');
