@@ -60,5 +60,16 @@
       </div>
     </div>
 
+    <script>
+      <!-- Update location if there is an hash tag -->
+      if (window.location.hash) {
+          var origin = document.getElementsByName('__ac.field.origin');
+          if (origin.length) {
+              var target = origin[0].getAttribute('value');
+              origin[0].setAttribute('value', target + window.location.hash);
+          };
+      };
+    </script>
+
   </form>
 </div>
