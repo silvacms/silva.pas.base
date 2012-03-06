@@ -3,13 +3,15 @@
    xmlns:grok="http://namespaces.zope.org/grok"
    xmlns:five="http://namespaces.zope.org/five">
 
+  <include package="five.grok" />
+  <include package="grokcore.chameleon" />
+
   <include package="silva.core.conf" />
   <include package="silva.core.cache" />
   <include package="silva.core.services" />
   <include package="silva.core.views" />
   <include package="silva.core.layout" />
   <include package="silva.core.smi" />
-  <include package="megrok.chameleon" />
 
   <include package="Products.PluggableAuthService" file="meta.zcml" />
   <include package="Products.PluggableAuthService" />
