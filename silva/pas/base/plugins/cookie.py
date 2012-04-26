@@ -5,6 +5,7 @@
 from base64 import encodestring
 from urllib import quote
 import urlparse
+import urllib
 import time
 
 from Products.PluggableAuthService.PluggableAuthService import \
@@ -21,7 +22,35 @@ from Globals import InitializeClass
 
 from zope.datetime import rfc1123_date
 
-encode_url = lambda v: v.encode('ascii', 'xmlcharrefreplace')
+
+def encode_query(query):
+    results = []
+
+    def encode_value(key, value):
+        if isinstance(value, basestring):
+            if isinstance(value, unicode):
+                try:
+                    value = value.encode('utf-8')
+                except UnicodeEncodeError:
+                    pass
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                encode_value(key, item)
+            return
+        else:
+            try:
+                value = str(value)
+            except:
+                pass
+        results.append((key, value))
+
+    for key, value in query.items():
+        encode_value(key, value)
+
+    if results:
+        return '?' + urllib.urlencode(results)
+    return ''
+
 
 def manage_addSilvaCookieAuthHelper(self, id, title='',
                                     REQUEST=None, **kw):
@@ -98,9 +127,7 @@ class SilvaCookieAuthHelper(CookieAuthHelper):
                         if bad in query:
                             del query[bad]
                     if query:
-                        keys, values = zip(*query.items())
-                        query = dict(zip(keys, map(encode_url, values)))
-                        came_from = mangle.urlencode(came_from, **query)
+                        came_from = encode_query(query)
             else:
                 req_url = req.get('ACTUAL_URL', '')
 
