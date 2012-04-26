@@ -2,10 +2,10 @@
 # See also LICENSE.txt
 # $Id$
 
-from urllib import urlencode
 import time
 import hashlib
 import urlparse
+import urllib
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
@@ -30,20 +30,33 @@ from zope.interface import alsoProvides
 from zope.publisher.interfaces.browser import IBrowserSkinType
 from zope.session.interfaces import IClientId
 
-
 def encode_query(query):
+    results = []
 
-    def encode_value(value):
-        if isinstance(value, list):
-            return map(encode_value, value)
+    def encode_value(key, value):
         if isinstance(value, basestring):
-            return [value.encode('ascii', 'xmlcharrefreplace')]
-        # Discard value of other type (FileUpload ...)
-        return []
+            if isinstance(value, unicode):
+                try:
+                    value = value.encode('utf-8')
+                except UnicodeEncodeError:
+                    pass
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                encode_value(key, item)
+            return
+        else:
+            try:
+                value = str(value)
+            except:
+                pass
+        results.append((key, value))
 
     for key, value in query.items():
-        for value in encode_value(value):
-            yield key, value
+        encode_value(key, value)
+
+    if results:
+        return '?' + urllib.urlencode(results)
+    return ''
 
 
 class SilvaCookieAuthHelper(BasePlugin):
@@ -145,7 +158,7 @@ class SilvaCookieAuthHelper(BasePlugin):
                     if bad in query:
                         del query[bad]
             if query:
-                came_from += '?' + urlencode(list(encode_query(query)))
+                came_from += '?' + encode_query(query)
 
         secret = service.digest(IClientId(request), came_from)
         session = self._get_session(request)
