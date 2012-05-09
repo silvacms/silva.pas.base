@@ -2,7 +2,7 @@
 # See also LICENSE.txt
 # $Id$
 
-from urllib import urlencode
+import urllib
 import time
 import hashlib
 
@@ -30,18 +30,32 @@ from zope.session.interfaces import IClientId
 
 
 def encode_query(query):
+    results = []
 
-    def encode_value(value):
-        if isinstance(value, list):
-            return map(encode_value, value)
+    def encode_value(key, value):
         if isinstance(value, basestring):
-            return [value.encode('ascii', 'xmlcharrefreplace')]
-        # Discard value of other type (FileUpload ...)
-        return []
+            if isinstance(value, unicode):
+                try:
+                    value = value.encode('utf-8')
+                except UnicodeEncodeError:
+                    pass
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                encode_value(key, item)
+            return
+        else:
+            try:
+                value = str(value)
+            except:
+                pass
+        results.append((key, value))
 
     for key, value in query.items():
-        for value in encode_value(value):
-            yield key, value
+        encode_value(key, value)
+
+    if results:
+        return '?' + urllib.urlencode(results)
+    return ''
 
 
 class SilvaCookieAuthHelper(BasePlugin):
@@ -53,6 +67,7 @@ class SilvaCookieAuthHelper(BasePlugin):
     cookie_name = '__ac_silva'
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
+    redirect_to_path = False
     _properties = ({'id'    : 'title',
                     'label' : 'Title',
                     'type'  : 'string',
@@ -68,7 +83,11 @@ class SilvaCookieAuthHelper(BasePlugin):
                    {'id'    : 'lifetime',
                     'label' : 'Life time (sec)',
                     'type'  : 'int',
-                    'mode'  : 'w'},)
+                    'mode'  : 'w'},
+                   {'id': 'redirect_to_path',
+                    'label': 'Redirect to path instead of URL',
+                    'type': 'boolean',
+                    'mode': 'w'})
 
     def __init__(self, id, title=None, cookie_name=''):
         self._setId(id)
@@ -119,14 +138,14 @@ class SilvaCookieAuthHelper(BasePlugin):
         came_from = request.get('came_from', None)
 
         if came_from is None:
-            came_from = request.get('URL', '')
+            came_from = request.get('ACTUAL_URL', '')
             query = request.form.copy()
             if query:
                 for bad in ['login_status', '-C']:
                     if bad in query:
                         del query[bad]
             if query:
-                came_from += '?' + urlencode(list(encode_query(query)))
+                came_from += encode_query(query)
 
         secret = service.digest(IClientId(request), came_from)
         session = self._get_session(request)
