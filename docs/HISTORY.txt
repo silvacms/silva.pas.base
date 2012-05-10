@@ -1,8 +1,15 @@
 Changelog
 =========
 
+1.6.4 (unreleased)
+------------------
+
+* ...
+
 1.6.3 (2012-05-10)
 ------------------
+
+* Redirect to ACTUAL_URL instead of URL.
 
 * Fix redirect to and after login form when they contains binary or
   unicode posted data.
