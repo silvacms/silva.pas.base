@@ -1,10 +1,11 @@
 Changelog
 =========
 
-1.6.3 (unreleased)
+1.6.3 (2012-05-10)
 ------------------
 
-* ...
+* Fix redirect to and after login form when they contains binary or
+  unicode posted data.
 
 1.6.2 (2011-07-27)
 ------------------
