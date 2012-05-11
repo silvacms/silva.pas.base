@@ -158,7 +158,7 @@ class SilvaCookieAuthHelper(BasePlugin):
                     if bad in query:
                         del query[bad]
             if query:
-                came_from += '?' + encode_query(query)
+                came_from += encode_query(query)
 
         secret = service.digest(IClientId(request), came_from)
         session = self._get_session(request)
