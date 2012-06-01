@@ -9,16 +9,15 @@ from five import grok
 from zope import interface, schema, component
 from zope.cachedescriptors.property import CachedProperty
 
-from Products.Silva.Security import UnauthorizedRoleAssignement
-
-from silva.ui.rest import UIREST
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
+from silva.core.interfaces import UnauthorizedRoleAssignement
 from silva.core.interfaces.auth import role_vocabulary, IAuthorizationManager
 from silva.core.services.interfaces import IGroupService, MemberLookupError
 from silva.core.smi.settings.access import Access, IGrantRoleSchema
 from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
+from silva.ui.rest import UIREST
 from zeam.form import silva as silvaforms
 from zeam.form.silva.interfaces import (
     IRESTCloseOnSuccessAction, IRESTRefreshAction,
@@ -231,11 +230,13 @@ class GrantAccessAction(silvaforms.Action):
                     _('Group "${groupname}" already has the role "${role}".',
                       mapping=mapping),
                     type="error")
-        except UnauthorizedRoleAssignement:
+        except UnauthorizedRoleAssignement as error:
             form.send_message(
                 _(u'Sorry, you are not allowed to remove the role "${role}" '
-                  u'from group "${groupid}".',
-                  mapping=mapping),
+                  u'from group "${groupid}": ${reason}.',
+                  mapping={'role': error.role,
+                           'groupid': error.identifier,
+                           'reason': error.reason}),
                 type="error")
         return silvaforms.SUCCESS
 
@@ -267,12 +268,13 @@ class RevokeAccessAction(silvaforms.Action):
                     _(u'Group "${groupname}" doesn\'t have any local role.',
                       mapping={'groupname': groupname}),
                     type="error")
-        except UnauthorizedRoleAssignement, error:
+        except UnauthorizedRoleAssignement as error:
             form.send_message(
                 _(u'Sorry, you are not allowed to remove the role "${role}" '
-                  u'from group "${groupid}".',
-                  mapping={'role': error.args[0],
-                           'groupid': error.args[1]}),
+                  u'from group "${groupid}": ${reason}.',
+                  mapping={'role': error.role,
+                           'groupid': error.identifier,
+                           'reason': error.reason}),
                 type="error")
         return silvaforms.SUCCESS
 
