@@ -4,23 +4,23 @@
   <h2 i18n:translate="">Protected area</h2>
 
   <div style="color:#f00; font-weight:bold;"
-    tal:define="message request.get('login_status')"
-    tal:condition="message">
+       tal:define="message view.message"
+       tal:condition="message">
     <!-- override the local style with a div.warning selector in your css -->
     <div class="feedback warning"
-      tal:content="message">
+         tal:content="message">
       status
     </div>
   </div>
 
-  <p tal:condition="not: request.get('login_status') | nothing"
+  <p tal:condition="not view.message"
     i18n:translate="">
     The page you are trying to visit has restricted access. Please
     authenticate.
   </p>
 
   <form method="post" action="#" name="login_form"
-        tal:attributes="action request.action">
+        tal:attributes="action view.action">
     <input type="hidden" name="__ac.field.origin" value=""
            tal:attributes="value request.get('__ac.field.origin')"/>
     <input type="hidden" name="__ac.field.secret" value=""
@@ -36,7 +36,7 @@
         </div>
         <div class="form-field">
           <input type="text" size="30" id="name" name="__ac.field.name"
-                 autofocus="autofocus"/>
+                 autofocus="autofocus" />
         </div>
       </div>
       <div class="form-element">
@@ -45,7 +45,7 @@
         </div>
         <div class="form-field">
           <input type="password"  size="30"
-            id="password" name="__ac.field.password" />
+                 id="password" name="__ac.field.password" />
         </div>
       </div>
       <div class="form-element">

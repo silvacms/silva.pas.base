@@ -5,7 +5,15 @@
 import time
 import hashlib
 import urlparse
-import urllib
+
+from zope.interface import implements
+from zope.component import getUtility, queryUtility
+from zope.component import queryMultiAdapter
+from zope.datetime import rfc1123_date
+from zope.interface import alsoProvides
+from zope.publisher.interfaces.browser import IBrowserSkinType
+from zope.session.interfaces import IClientId
+from zope.traversing.browser import absoluteURL
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
@@ -16,6 +24,7 @@ from Products.PluggableAuthService.PluggableAuthService import \
 from Products.PluggableAuthService.interfaces import plugins
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from silva.pas.base.plugins.interfaces import ICookiePlugin
+from silva.pas.base.utils import encode_query
 
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
@@ -23,40 +32,7 @@ from silva.core.layout.interfaces import IMetadata
 from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
-from zope.interface import implements
-from zope import component
-from zope.datetime import rfc1123_date
-from zope.interface import alsoProvides
-from zope.publisher.interfaces.browser import IBrowserSkinType
-from zope.session.interfaces import IClientId
-
-def encode_query(query):
-    results = []
-
-    def encode_value(key, value):
-        if isinstance(value, basestring):
-            if isinstance(value, unicode):
-                try:
-                    value = value.encode('utf-8')
-                except UnicodeEncodeError:
-                    pass
-        elif isinstance(value, (list, tuple)):
-            for item in value:
-                encode_value(key, item)
-            return
-        else:
-            try:
-                value = str(value)
-            except:
-                pass
-        results.append((key, value))
-
-    for key, value in query.items():
-        encode_value(key, value)
-
-    if results:
-        return '?' + urllib.urlencode(results)
-    return ''
+from silva.translations import translate as _
 
 
 class SilvaCookieAuthHelper(BasePlugin):
@@ -102,32 +78,34 @@ class SilvaCookieAuthHelper(BasePlugin):
         metadata = IMetadata(root)
         try:
             name = metadata('silva-layout', 'skin')
-            skin = component.queryUtility(IBrowserSkinType, name=name)
+            skin = queryUtility(IBrowserSkinType, name=name)
             applySkinButKeepSome(request, skin)
         except AttributeError:
             pass
         alsoProvides(request, INonCachedLayer)
 
     def _get_login_page(self, request):
-        parent = request.PARENTS and request.PARENTS[0]
+        parent = request.PARENTS and request.PARENTS[0] or None
         if ISilvaObject.providedBy(parent):
             root = parent.get_publication()
         else:
             root = IVirtualSite(request).get_root()
+        if request.environ.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+            login_path = 'xml_login_form.html'
+        else:
+            login_path = self.login_path
+            # Restory the public skin
+            self._restore_public_skin(request, root)
 
-        # Restory the public skin
-        self._restore_public_skin(request, root)
-
-        page = component.queryMultiAdapter(
-            (parent, request), name=self.login_path)
+        page = None
+        if parent is not None:
+            page = queryMultiAdapter((parent, request), name=login_path)
         if page is None:
-            # No login page found here, try on the 'root'
-            page = component.queryMultiAdapter(
-                (root, request), name=self.login_path)
+            page = queryMultiAdapter((root, request), name=login_path)
         if page is not None:
             # Set parent and name for URL (and security)
             page.__parent__ = root
-            page.__name__ = '@@' + self.login_path
+            page.__name__ = '@@' + login_path
         return page
 
     def _get_session(self, request):
@@ -136,8 +114,8 @@ class SilvaCookieAuthHelper(BasePlugin):
     def _get_cookie_path(self, request):
         return IVirtualSite(request).get_root_path()
 
-    def unauthorized(self, request, response, login_status=None):
-        service = component.queryUtility(ISecretService)
+    def unauthorized(self, request, response, message=None):
+        service = queryUtility(ISecretService)
         if service is None:
             return False
 
@@ -172,15 +150,11 @@ class SilvaCookieAuthHelper(BasePlugin):
                 (None, None) + urlparse.urlparse(came_from)[2:])
         else:
             options['__ac.field.origin'] = came_from
-        options['action'] = self.absolute_url() + '/login'
-        if login_status is None:
-            login_status = request.form.get('login_status', None)
-        if login_status is not None:
-            options['login_status'] = login_status
 
-        # XXX Need to make sure you can't render the view without
-        # passing through that code before as its that code who set
-        # the form action
+        # Set options. The page should not accept to render if action
+        # is not set.
+        page.message = message
+        page.action = absoluteURL(self, request) + '/login'
         request.form = options
         # It is not very nice but we don't have lot of choice.
         response.setStatus(401)
@@ -207,10 +181,10 @@ class SilvaCookieAuthHelper(BasePlugin):
         address = credentials.get('remote_address')
         if cookie is None or address is None:
             return None
-        secret_service = component.queryUtility(ISecretService)
-        if secret_service is None:
+        service = queryUtility(ISecretService)
+        if service is None:
             return None
-        client_secret = secret_service.digest(cookie, address)
+        client_secret = service.digest(cookie, address)
         session = self._get_session(self.REQUEST)
         if session.get('secret', None) == client_secret:
             user = session.get('user', None)
@@ -235,7 +209,7 @@ class SilvaCookieAuthHelper(BasePlugin):
     def updateCookieCredentials(self, request, response, user, login):
         """Respond to change of credentials (NOOP for basic auth).
         """
-        service = component.getUtility(ISecretService)
+        service = getUtility(ISecretService)
         cookie = hashlib.sha1(str(IClientId(request)) + login).hexdigest()
         secret = service.digest(cookie, request.getClientAddr())
         session = self._get_session(request)
@@ -254,7 +228,6 @@ class SilvaCookieAuthHelper(BasePlugin):
         path = self._get_cookie_path(request)
         response.expireCookie(self.cookie_name, path=path)
 
-
     security.declarePublic('login')
     def login(self):
         """ Set a cookie and redirect to the url that we tried to
@@ -272,7 +245,7 @@ class SilvaCookieAuthHelper(BasePlugin):
             self.unauthorized(
                 request=request,
                 response=response,
-                login_status=u"You need to provide a login and a password.")
+                message=_(u"You need to provide a login and a password."))
             return
         else:
             stored_secret = self._get_session(request).get('secret', None)
@@ -280,7 +253,7 @@ class SilvaCookieAuthHelper(BasePlugin):
                 self.unauthorized(
                     request = request,
                     response=response,
-                    login_status=u"Invalid login or password")
+                    message=_(u"Invalid login or password."))
                 return
             credentials = {'login': login, 'password': password,}
             pas = self._getPAS()
@@ -314,7 +287,7 @@ class SilvaCookieAuthHelper(BasePlugin):
             self.unauthorized(
                 request=request,
                 response=response,
-                login_status=u"Invalid login or password")
+                message=_(u"Invalid login or password."))
             return
 
 

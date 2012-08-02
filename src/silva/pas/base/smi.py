@@ -6,7 +6,8 @@
 import operator
 
 from five import grok
-from zope import interface, schema, component
+from zope import schema, component
+from zope.interface import Interface
 from zope.cachedescriptors.property import CachedProperty
 
 from silva.core.cache.store import SessionStore
@@ -23,12 +24,12 @@ from zeam.form.silva.interfaces import (
     IRESTCloseOnSuccessAction, IRESTRefreshAction,
     IRemoverAction, IDefaultAction)
 
+from zExceptions import BadRequest
 
 
 ## Login form in SMI, in a popup
 
-class ILoginFields(interface.Interface):
-
+class ILoginFields(Interface):
     name = schema.TextLine(
         title=_(u"Login"),
         required=True)
@@ -46,19 +47,22 @@ class ILoginFields(interface.Interface):
 def next_action_url(action):
 
     def action_url(form):
-        root_url = IVirtualSite(form.request).get_root_url()
-        return '/'.join((root_url, '++rest++' + action))
+        url = IVirtualSite(form.request).get_root_url()
+        return '/'.join((url, '++rest++' + action))
 
     return action_url
 
 
 class LoginPage(silvaforms.PopupForm):
-    grok.context(UIREST)
-    grok.name('silva_login_form.html')
+    grok.context(Interface)
+    grok.name('xml_login_form.html')
     # You can view this login page as it is not possible to call with
     # a different submit URL. This makes validation works.
-    grok.require('zope2.View')
+    grok.require('zope2.Public')
 
+    action = None
+    message = None
+    novalidation = True
     prefix = '__ac'
     label = _(u"Restricted access")
     description = _(u"You need to login with new credentials in order to continue.")
@@ -70,16 +74,24 @@ class LoginPage(silvaforms.PopupForm):
     actions = silvaforms.Actions(
         silvaforms.CancelAction())
 
-    @silvaforms.action(_(u"Login"), implements=IDefaultAction)
+    @silvaforms.action(
+        _(u"Login"),
+        implements=(IDefaultAction, IRESTCloseOnSuccessAction))
     def login(self):
         # Empty action to create a submit button. form_url is changed
         # below, the form will not be submitted here.
-        pass
+        return silvaforms.SUCCESS
 
     def updateForm(self):
-        result = super(LoginPage, self).updateForm()
+        # The cookie plugin must set action and status on the form. If
+        # this is not set, someone is trying to hack the matrice.
+        if self.action is None:
+            raise BadRequest()
+        if self.message:
+            self.send_message(self.message, type="error")
         # Change the form url to the real login submit
-        result['content']['submit_url'] = self.request.action
+        result = super(LoginPage, self).updateForm()
+        result['content']['submit_url'] = self.action
         return result
 
 
@@ -107,7 +119,7 @@ class LookupGroupPopupAction(silvaforms.PopupAction):
     accesskey = u'g'
 
 
-class ILookupGroupSchema(interface.Interface):
+class ILookupGroupSchema(Interface):
     """Lookup a group
     """
     group = schema.TextLine(
@@ -188,7 +200,7 @@ class GroupRole(silvaforms.SMISubFormGroup):
                 super(GroupRole, self).available())
 
 
-class IGroupAuthorization(interface.Interface):
+class IGroupAuthorization(Interface):
 
     identifier = schema.TextLine(
         title=_(u"group name"))

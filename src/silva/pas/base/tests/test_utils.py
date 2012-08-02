@@ -4,7 +4,7 @@
 # $Id$
 
 import unittest
-from silva.pas.base.plugins.cookie import encode_query
+from silva.pas.base.utils import encode_query
 
 
 class UtilsTestCase(unittest.TestCase):

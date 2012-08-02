@@ -24,6 +24,8 @@ from silva.core.interfaces.auth import IGroup
 from silva.pas.base.interfaces import IPASService, IUserConverter
 from zope.component import getUtilitiesFor
 
+from zExceptions import BadRequest
+
 
 class Group(object):
     grok.implements(IGroup)
@@ -40,7 +42,6 @@ class Group(object):
 
     def allowed_roles(self):
         return roleinfo.ASSIGNABLE_ROLES
-
 
 
 class MemberService(SimpleMemberService):
@@ -192,5 +193,10 @@ InitializeClass(MemberService)
 
 class LoginPage(silvaviews.Page):
     grok.name('silva_login_form.html')
-    grok.require('zope2.Private')
 
+    message = None
+    action = None
+
+    def update(self):
+        if self.action is None:
+            raise BadRequest()
