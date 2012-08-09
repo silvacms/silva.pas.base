@@ -7,6 +7,7 @@ import urllib
 # Zope
 from AccessControl import ClassSecurityInfo
 from App.class_init import InitializeClass
+from zExceptions import BadRequest
 
 # Silva
 from Products.Silva import roleinfo
@@ -18,13 +19,14 @@ from Products.PluggableAuthService.interfaces.plugins import \
     IGroupEnumerationPlugin
 
 from five import grok
+from zope.component import getUtilitiesFor
+from zope.component import queryMultiAdapter
+
 from silva.core import conf as silvaconf
 from silva.core.views import views as silvaviews
+from silva.core.views.interfaces import IHTTPResponseHeaders
 from silva.core.interfaces.auth import IGroup
 from silva.pas.base.interfaces import IPASService, IUserConverter
-from zope.component import getUtilitiesFor
-
-from zExceptions import BadRequest
 
 
 class Group(object):
@@ -200,3 +202,11 @@ class LoginPage(silvaviews.Page):
     def update(self):
         if self.action is None:
             raise BadRequest()
+        # Due how PAS monkey patch Zope, we need to do this by hand here.
+        headers = queryMultiAdapter(
+            (self.request, Exception()),
+            IHTTPResponseHeaders)
+        if headers is not None:
+            headers()
+
+
