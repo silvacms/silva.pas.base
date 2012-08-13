@@ -3,7 +3,6 @@
 # $Id$
 
 import time
-import hashlib
 import urlparse
 
 from zope.interface import implements
@@ -45,6 +44,7 @@ class SilvaCookieAuthHelper(BasePlugin):
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
     redirect_to_path = False
+    redirect_to_url = ''
     _properties = (
         {'id': 'title',
          'label': 'Title',
@@ -65,6 +65,10 @@ class SilvaCookieAuthHelper(BasePlugin):
         {'id': 'redirect_to_path',
          'label': 'Redirect to path instead of URL',
          'type': 'boolean',
+         'mode': 'w'},
+        {'id': 'redirect_to_url',
+         'label': 'Redirect to a different base URL',
+         'type': 'string',
          'mode': 'w'})
 
     def __init__(self, id, title=None, cookie_name=''):
@@ -177,19 +181,23 @@ class SilvaCookieAuthHelper(BasePlugin):
 
     security.declarePrivate('authenticateCredentials')
     def authenticateCredentials(self, credentials):
+        request = self.REQUEST
         cookie = credentials.get('remote_cookie')
-        address = credentials.get('remote_address')
-        if cookie is None or address is None:
+        if cookie is None:
             return None
         service = queryUtility(ISecretService)
         if service is None:
             return None
-        client_secret = service.digest(cookie, address)
-        session = self._get_session(self.REQUEST)
-        if session.get('secret', None) == client_secret:
-            user = session.get('user', None)
-            login = session.get('login', user)
-            if user is not None:
+        session = self._get_session(request)
+        user = session.get('user', None)
+        login = session.get('login', user)
+        timestamp = session.get('timestamp', 0)
+        if user is not None and login is not None:
+            expected = service.digest(
+                str(IClientId(request)),
+                login,
+                (int(time.time()) - timestamp) / self.lifetime)
+            if cookie == expected:
                 return (user, login)
         return None
 
@@ -201,7 +209,6 @@ class SilvaCookieAuthHelper(BasePlugin):
         cookie = request.get(self.cookie_name, '')
         if cookie and cookie != 'deleted':
             credentials['remote_cookie'] = cookie
-            credentials['remote_address'] = request.getClientAddr()
 
         return credentials
 
@@ -209,17 +216,24 @@ class SilvaCookieAuthHelper(BasePlugin):
     def updateCookieCredentials(self, request, response, user, login):
         """Respond to change of credentials (NOOP for basic auth).
         """
-        service = getUtility(ISecretService)
-        cookie = hashlib.sha1(str(IClientId(request)) + login).hexdigest()
-        secret = service.digest(cookie, request.getClientAddr())
+        now = int(time.time())
+        timestamp = now % self.lifetime
+
         session = self._get_session(request)
-        session.set('secret', secret)
         session.set('login', login)
         session.set('user', user)
+        session.set('timestamp', timestamp)
 
-        expires = rfc1123_date(time.time() + self.lifetime)
-        path = self._get_cookie_path(request)
-        response.setCookie(self.cookie_name, cookie, path=path, expires=expires)
+        service = getUtility(ISecretService)
+        cookie = service.digest(
+            str(IClientId(request)),
+            login,
+            (now - timestamp) / self.lifetime)
+        response.setCookie(
+            self.cookie_name, cookie,
+            path=self._get_cookie_path(request),
+            expires=rfc1123_date(now + self.lifetime),
+            http_only=True)
 
     security.declarePrivate('resetCredentials')
     def resetCredentials(self, request, response):
@@ -227,6 +241,10 @@ class SilvaCookieAuthHelper(BasePlugin):
         """
         path = self._get_cookie_path(request)
         response.expireCookie(self.cookie_name, path=path)
+        session = self._get_session(request)
+        session.set('login', None)
+        session.set('user', None)
+        session.set('timestamp', 0)
 
     security.declarePublic('login')
     def login(self):
