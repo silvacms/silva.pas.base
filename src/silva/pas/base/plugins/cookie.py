@@ -36,8 +36,6 @@ from silva.core.services.interfaces import ISecretService
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.translations import translate as _
 
-from zExceptions import Redirect
-
 
 class SilvaCookieAuthHelper(BasePlugin):
     meta_type = 'Silva Cookie Auth Helper'
@@ -46,6 +44,7 @@ class SilvaCookieAuthHelper(BasePlugin):
 
     # Customize configuration
     cookie_name = '__ac_silva'
+    cookie_secure = False
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
     redirect_to_path = False
@@ -58,6 +57,10 @@ class SilvaCookieAuthHelper(BasePlugin):
         {'id': 'cookie_name',
          'label': 'Cookie Name',
          'type': 'string',
+         'mode': 'w'},
+        {'id': 'cookie_secure',
+         'label': 'Enable secure flag on the cookie',
+         'type': 'boolean',
          'mode': 'w'},
         {'id': 'login_path',
          'label': 'Login Form',
@@ -252,7 +255,8 @@ class SilvaCookieAuthHelper(BasePlugin):
             self.cookie_name, cookie,
             path=self._get_cookie_path(request),
             expires=rfc1123_date(now + self.lifetime),
-            http_only=True)
+            http_only=True,
+            secure=self.cookie_secure)
 
     security.declarePrivate('resetCredentials')
     def resetCredentials(self, request, response):
