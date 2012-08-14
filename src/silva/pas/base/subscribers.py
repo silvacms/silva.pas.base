@@ -4,7 +4,6 @@
 
 from five import grok
 from Products.PluggableAuthService.interfaces import plugins as pas
-from silva.pas.base.interfaces import IPASService
 from silva.core.interfaces import IRoot
 from silva.core.interfaces import IInstallRootEvent
 

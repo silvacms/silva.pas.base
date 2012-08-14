@@ -25,6 +25,9 @@ from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from silva.pas.base.plugins.interfaces import ICookiePlugin
 from silva.pas.base.utils import encode_query
 
+from infrae.wsgi.interfaces import IRequest
+from infrae.wsgi.interfaces import IVirtualHosting
+
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
 from silva.core.layout.interfaces import IMetadata
@@ -32,6 +35,8 @@ from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.translations import translate as _
+
+from zExceptions import Redirect
 
 
 class SilvaCookieAuthHelper(BasePlugin):
@@ -123,15 +128,14 @@ class SilvaCookieAuthHelper(BasePlugin):
         if service is None:
             return False
 
-        # If we set the auth cookie before, delete it now.
-        if response.cookies.has_key(self.cookie_name):
-            del response.cookies[self.cookie_name]
-        # Get the login page.
-        page = self._get_login_page(request)
-        if page is None:
-            return False
-        came_from = request.get('__ac.field.origin', None)
+        rewrite_url = None
+        if IRequest.providedBy(request):
+            vhm_plugin = request.get_plugin(IVirtualHosting)
+            if vhm_plugin is not None:
+                rewrite_url = vhm_plugin.rewrite_url
 
+        # 1. find the currently unauthorized URL.
+        came_from = request.get('__ac.field.origin', None)
         if came_from is None:
             came_from = request.get('ACTUAL_URL', '')
             query = request.form.copy()
@@ -142,16 +146,31 @@ class SilvaCookieAuthHelper(BasePlugin):
             if query:
                 came_from += encode_query(query)
 
+        # 2. do the optional redirect to the wanted backend.
+        if self.redirect_to_url:
+            if (not came_from.startswith(self.redirect_to_url) and
+                rewrite_url is not None):
+                response.redirect(rewrite_url(self.redirect_to_url, came_from))
+                return True
+
+        # 3. Cleanup, if we already have a auth cookie, delete it.
+        if response.cookies.has_key(self.cookie_name):
+            del response.cookies[self.cookie_name]
+
+        # 4. Get the login page.
+        page = self._get_login_page(request)
+        if page is None:
+            return False
+
         secret = service.digest(IClientId(request), came_from)
         session = self._get_session(request)
         session.set('secret', secret)
 
         options = {}
         options['__ac.field.secret'] = secret
-        if self.redirect_to_path:
+        if self.redirect_to_path and rewrite_url is not None:
             # Only include the path
-            options['__ac.field.origin'] = urlparse.urlunparse(
-                (None, None) + urlparse.urlparse(came_from)[2:])
+            options['__ac.field.origin'] = rewrite_url(None, came_from)
         else:
             options['__ac.field.origin'] = came_from
 
