@@ -1,10 +1,12 @@
 Changelog
 =========
 
-1.5.5 (unreleased)
+1.5.5 (2012-08-23)
 ------------------
 
-* ...
+* Improve how form parameters are encoded in the URL when redirecting
+  to the login form. This prevent unwanted errors when parameters are
+  binary like data.
 
 1.5.4 (2012-01-13)
 ------------------
