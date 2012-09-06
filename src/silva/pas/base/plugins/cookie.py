@@ -90,10 +90,12 @@ class SilvaCookieAuthHelper(BasePlugin):
         metadata = IMetadata(root)
         try:
             name = metadata('silva-layout', 'skin')
-            skin = queryUtility(IBrowserSkinType, name=name)
-            applySkinButKeepSome(request, skin)
-        except AttributeError:
+        except:
             pass
+        else:
+            skin = queryUtility(IBrowserSkinType, name=name)
+            if skin is not None:
+                applySkinButKeepSome(request, skin)
         alsoProvides(request, INonCachedLayer)
 
     def _get_login_page(self, request):
