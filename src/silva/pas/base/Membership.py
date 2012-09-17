@@ -21,12 +21,17 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from five import grok
 from zope.component import getUtilitiesFor
 from zope.component import queryMultiAdapter
+from zope.interface import Interface
+from zope import schema
 
 from silva.core import conf as silvaconf
 from silva.core.views import views as silvaviews
 from silva.core.views.interfaces import IHTTPResponseHeaders
 from silva.core.interfaces.auth import IGroup
 from silva.pas.base.interfaces import IPASService, IUserConverter
+
+from zeam.form import silva as silvaforms
+from zeam.form.ztk.actions import EditAction
 
 
 class Group(object):
@@ -56,6 +61,13 @@ class MemberService(SimpleMemberService):
     silvaconf.icon('Membership.png')
 
     security = ClassSecurityInfo()
+
+    manage_options = (
+        {'label':'Settings', 'action':'manage_settings'},
+        ) + SimpleMemberService.manage_options
+
+    _display_usernames = False
+    _redirect_to_root = False
 
     def _convert_userid(self, userid):
         for name, utility in getUtilitiesFor(IUserConverter):
@@ -164,6 +176,26 @@ class MemberService(SimpleMemberService):
             return None
         return Group(groups[0]['groupid'], groups[0]['title'])
 
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'set_display_usernames')
+    def set_display_usernames(self, showed):
+        self._display_usernames = showed
+
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'get_display_usernames')
+    def get_display_usernames(self):
+        return self._display_usernames
+
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'set_redirect_to_root')
+    def set_redirect_to_root(self, showed):
+        self._redirect_to_root = showed
+
+    security.declareProtected(
+        SilvaPermissions.AccessContentsInformation, 'get_redirect_to_root')
+    def get_redirect_to_root(self):
+        return self._redirect_to_root
+
     security.declarePublic('logout')
     def logout(self, came_from=None, REQUEST=None):
         """Logout the current user.
@@ -180,7 +212,7 @@ class MemberService(SimpleMemberService):
             came_from = REQUEST.form.get('came_from', None)
             if came_from:
                 came_from = urllib.unquote(came_from)
-        if came_from is not None:
+        if came_from is not None and not self._redirect_to_root:
             exit_url = came_from
         else:
             exit_url = root.absolute_url()
@@ -210,3 +242,21 @@ class LoginPage(silvaviews.Page):
             headers()
 
 
+class ISettingsFields(Interface):
+    _display_usernames = schema.Bool(title=u'Display user names',
+        description=u'Display user names instead of login names in tab access')
+    _redirect_to_root = schema.Bool(title=u'Logout redirect to root',
+        description=u"Always redirect to root after logout.")
+
+
+class MemberServiceForm(silvaforms.ZMIForm):
+    grok.context(MemberService)
+    grok.name('manage_settings')
+
+    ignoreContent = False
+
+    label = u'Manage Member service'
+    description = (u'Configure various settings related to user '
+                   u'sessions and permissions.')
+    fields = silvaforms.Fields(ISettingsFields)
+    actions = silvaforms.Actions(EditAction('Save changes'))
