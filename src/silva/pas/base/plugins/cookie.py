@@ -10,7 +10,6 @@ from zope.component import getUtility, queryUtility
 from zope.component import queryMultiAdapter
 from zope.datetime import rfc1123_date
 from zope.interface import alsoProvides
-from zope.publisher.interfaces.browser import IBrowserSkinType
 from zope.session.interfaces import IClientId
 from zope.traversing.browser import absoluteURL
 
@@ -30,7 +29,7 @@ from infrae.wsgi.interfaces import IVirtualHosting
 
 from silva.core.cache.store import SessionStore
 from silva.core.interfaces import ISilvaObject
-from silva.core.layout.interfaces import IMetadata
+from silva.core.layout.interfaces import ISkinLookup
 from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
@@ -86,15 +85,11 @@ class SilvaCookieAuthHelper(BasePlugin):
             self.cookie_name = cookie_name
 
     def _restore_public_skin(self, request, root):
-        # Restore public skin site
-        metadata = IMetadata(root)
-        try:
-            name = metadata('silva-layout', 'skin')
-        except:
-            pass
-        else:
-            skin = queryUtility(IBrowserSkinType, name=name)
+        lookup = ISkinLookup(root.get_publication(), None)
+        if lookup is not None:
+            skin = lookup.get_skin(request)
             if skin is not None:
+                # We found a skin to apply
                 applySkinButKeepSome(request, skin)
         alsoProvides(request, INonCachedLayer)
 
