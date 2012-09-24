@@ -19,13 +19,14 @@ from Products.PluggableAuthService.interfaces.plugins import \
     IGroupEnumerationPlugin
 
 from five import grok
-from zope.component import getUtilitiesFor
-from zope.component import queryMultiAdapter
+from zope.component import getUtilitiesFor, queryMultiAdapter
+from zope.publisher.interfaces.browser import IBrowserRequest
 from zope.interface import Interface
 from zope import schema
 
 from silva.core import conf as silvaconf
 from silva.core.views import views as silvaviews
+from silva.core.views.httpheaders import ErrorHeaders
 from silva.core.views.interfaces import IHTTPResponseHeaders
 from silva.core.interfaces.auth import IGroup
 from silva.pas.base.interfaces import IPASService, IUserConverter
@@ -236,10 +237,17 @@ class LoginPage(silvaviews.Page):
             raise BadRequest()
         # Due how PAS monkey patch Zope, we need to do this by hand here.
         headers = queryMultiAdapter(
-            (self.request, Exception()),
+            (self.request, self),
             IHTTPResponseHeaders)
         if headers is not None:
             headers()
+
+class LoginPageHeaders(ErrorHeaders):
+    grok.adapts(IBrowserRequest, LoginPage)
+
+    def other_headers(self, headers):
+        super(LoginPageHeaders, self).other_headers(headers)
+        self.response.setStatus(401)
 
 
 class ISettingsFields(Interface):
