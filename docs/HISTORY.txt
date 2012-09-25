@@ -1,10 +1,17 @@
 Changelog
 =========
 
-3.0 (unreleased)
-----------------
+3.0c1 (2012/09/25)
+------------------
 
-* ...
+* Update API to Silva 3.0c1.
+
+* Add more options to the cookie PAS handler.
+
+* Improve login mechanism when using AJAX requests, login form and
+  login cookie.
+
+* Improve tests.
 
 3.0b1 (2011/11/11)
 ------------------

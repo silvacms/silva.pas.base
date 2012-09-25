@@ -5,7 +5,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '3.0dev'
+version = '3.0c1'
 
 tests_require = [
     'Products.Silva [test]',
@@ -37,6 +37,7 @@ setup(name='silva.pas.base',
         "Products.PluggableAuthService >= 1.7.0",
         "Products.Silva",
         "five.grok",
+        "infrae.wsgi",
         "grokcore.chameleon",
         "setuptools",
         "silva.core.cache",
