@@ -19,9 +19,6 @@ from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from silva.ui.rest import UIREST
 from zeam.form import silva as silvaforms
-from zeam.form.silva.interfaces import (
-    IRESTCloseOnSuccessAction, IRESTRefreshAction,
-    IRemoverAction, IDefaultAction)
 
 from zExceptions import BadRequest
 
@@ -75,7 +72,8 @@ class LoginPage(silvaforms.PopupForm):
 
     @silvaforms.action(
         _(u"Login"),
-        implements=(IDefaultAction, IRESTCloseOnSuccessAction))
+        implements=(silvaforms.IDefaultAction,
+                    silvaforms.IRESTCloseOnSuccessAction))
     def login(self):
         # Empty action to create a submit button. form_url is changed
         # below, the form will not be submitted here.
@@ -129,7 +127,9 @@ class ILookupGroupSchema(Interface):
 
 
 class LookupGroupAction(silvaforms.Action):
-    grok.implements(IRESTCloseOnSuccessAction, IRESTRefreshAction)
+    grok.implements(silvaforms.IRESTCloseOnSuccessAction,
+                    silvaforms.IRESTRefreshAction,
+                    silvaforms.IDefaultAction)
     refresh = 'form.grouprole.lookupgroupresultform'
 
     title = _(u"Lookup group")
@@ -253,7 +253,7 @@ class GrantAccessAction(silvaforms.Action):
 
 
 class RevokeAccessAction(silvaforms.Action):
-    grok.implements(IRemoverAction)
+    grok.implements(silvaforms.IRemoverAction)
 
     title = _(u"Revoke role")
     description=_(u"Revoke the role of selected group(s)")
@@ -348,7 +348,7 @@ class LookupGroupResultForm(GroupRoleForm):
         _(u"Clear clipboard"),
         description=_(u"Remove the group lookup results"),
         available=lambda form: len(form.lines) != 0,
-        implements=IRemoverAction)
+        implements=silvaforms.IRemoverAction)
     def clear(self):
         self.store.set(GROUP_STORE_KEY, set())
 
