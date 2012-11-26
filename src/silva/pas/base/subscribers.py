@@ -12,26 +12,32 @@ def configure_service(root, event):
     installed_ids = root.objectIds()
 
     if 'Members' not in installed_ids:
-        root.manage_addProduct['BTreeFolder2'].manage_addBTreeFolder('Members')
+        factory = root.manage_addProduct['BTreeFolder2']
+        factory.manage_addBTreeFolder('Members')
 
-    if 'acl_users' in installed_ids:
-        # if there is another user folder already available, don't touch it
-        return
+    if 'acl_users' not in installed_ids:
+        create_acl_users(root)
 
-    root.manage_addProduct['PluggableAuthService'].addPluggableAuthService()
-    acl_users = root.acl_users
-    factory = acl_users.manage_addProduct['silva.pas.base']
+
+def create_acl_users(folder):
+    """Create a acl_users in the given folder.
+    """
+    factory = folder.manage_addProduct['PluggableAuthService']
+    factory.addPluggableAuthService()
+    acl_users = folder._getOb('acl_users')
     # Add cookie storage for auth
+    factory = acl_users.manage_addProduct['silva.pas.base']
     factory.manage_addSilvaCookieAuthHelper('cookie_auth')
+
+    # Add a user and rolesource
     factory = acl_users.manage_addProduct['PluggableAuthService']
-    # Add a user source
     factory.addZODBUserManager('users')
-    # Add a role source
     factory.addZODBRoleManager('roles')
     # Add a delegating source, to ask users to default Zope ACL
     factory.manage_addDelegatingMultiPlugin(
         'zope', delegate_path='/acl_users')
 
+    # Configure plugins
     plugins = acl_users.plugins
     plugins.activatePlugin(pas.IExtractionPlugin, 'cookie_auth')
     plugins.activatePlugin(pas.IChallengePlugin, 'cookie_auth')
@@ -47,10 +53,11 @@ def configure_service(root, event):
     plugins.activatePlugin(pas.IRoleAssignerPlugin, 'roles')
     plugins.activatePlugin(pas.IRoleEnumerationPlugin, 'roles')
 
-    createDefaultSilvaRolesInPAS(acl_users.roles)
+    # Configure Silva roles.
+    create_silva_roles(acl_users.roles)
 
 
-def createDefaultSilvaRolesInPAS(plugin):
+def create_silva_roles(plugin):
     """Create default Silva roles in the roles assigner plugin.
     """
     existing = [r['id'] for r in plugin.enumerateRoles()]
@@ -59,13 +66,6 @@ def createDefaultSilvaRolesInPAS(plugin):
 
     for role in to_create:
         plugin.addRole(role)
-
-
-def registerServiceMembers(root):
-    if 'service_members' in root.objectIds():
-        root.manage_delObjects(['service_members',])
-    factory = root.manage_addProduct['silva.pas.base']
-    factory.manage_addMemberService('service_members')
 
 
 if __name__ == '__main__':

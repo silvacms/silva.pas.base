@@ -30,6 +30,8 @@ from silva.core.views.httpheaders import ErrorHeaders
 from silva.core.views.interfaces import IHTTPResponseHeaders
 from silva.core.interfaces.auth import IGroup
 from silva.pas.base.interfaces import IPASService, IUserConverter
+from silva.pas.base.subscribers import create_acl_users
+from silva.translations import translate as _
 
 from zeam.form import silva as silvaforms
 from zeam.form.ztk.actions import EditAction
@@ -276,8 +278,16 @@ class MemberServiceForm(silvaforms.ZMIForm):
 
     ignoreContent = False
 
-    label = u'Manage Member service'
-    description = (u'Configure various settings related to user '
-                   u'sessions and permissions.')
+    label = _(u'Manage Member service')
+    description = _(u'Configure various settings related to user '
+                    u'sessions and permissions.')
     fields = silvaforms.Fields(ISettingsFields)
-    actions = silvaforms.Actions(EditAction('Save changes'))
+    actions = silvaforms.Actions(EditAction(_('Save changes')))
+
+    @silvaforms.action(_(u"Install PAS"),
+                       available=lambda f: f.context._get_pas() is None)
+    def install_acl_user(self):
+        root = self.context.get_root()
+        if 'acl_users' in root.objectIds():
+            root.manage_delObjects(['acl_users'])
+        create_acl_users(root)
