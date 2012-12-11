@@ -1,10 +1,15 @@
 Changelog
 =========
 
-3.0 (unreleased)
+3.0 (2012/12/11)
 ----------------
 
-* ...
+* Add an option to display users email address in the Access tab.
+
+* Propose to install a PAS acl_users if one isn't already installed in
+  the service.
+
+* Fix default buttons on various screens.
 
 3.0c1 (2012/09/25)
 ------------------
