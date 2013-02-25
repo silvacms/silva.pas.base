@@ -46,6 +46,7 @@ class SilvaCookieAuthHelper(BasePlugin):
     cookie_secure = False
     login_path = 'silva_login_form.html'
     lifetime = 12 * 3600
+    include_session_token = True
     redirect_to_path = False
     redirect_to_url = ''
     _properties = (
@@ -59,6 +60,10 @@ class SilvaCookieAuthHelper(BasePlugin):
          'mode': 'w'},
         {'id': 'cookie_secure',
          'label': 'Enable secure flag on the cookie',
+         'type': 'boolean',
+         'mode': 'w'},
+        {'id': 'include_session_token',
+         'label': 'Include a session token to prevent replay attack',
          'type': 'boolean',
          'mode': 'w'},
         {'id': 'login_path',
@@ -162,12 +167,13 @@ class SilvaCookieAuthHelper(BasePlugin):
         if page is None:
             return False
 
-        secret = service.digest(IClientId(request), came_from)
-        session = self._get_session(request)
-        session.set('secret', secret)
-
         options = {}
-        options['__ac.field.secret'] = secret
+        if self.include_session_token:
+            secret = service.digest(str(IClientId(request)), came_from)
+            session = self._get_session(request)
+            session.set('secret', secret)
+            options['__ac.field.secret'] = secret
+
         if self.redirect_to_path and rewrite_url is not None:
             # Only include the path
             options['__ac.field.origin'] = rewrite_url(None, came_from)
@@ -276,7 +282,6 @@ class SilvaCookieAuthHelper(BasePlugin):
 
         login = request.form.get('__ac.field.name', '')
         password = request.form.get('__ac.field.password', '')
-        secret = request.form.get('__ac.field.secret', '')
         authenticated = False
 
         if (not login) or (not password):
@@ -286,13 +291,15 @@ class SilvaCookieAuthHelper(BasePlugin):
                 message=_(u"You need to provide a login and a password."))
             return
         else:
-            stored_secret = self._get_session(request).get('secret', None)
-            if (stored_secret != secret) or request.method != 'POST':
-                self.unauthorized(
-                    request = request,
-                    response=response,
-                    message=_(u"Invalid login or password."))
-                return
+            if self.include_session_token:
+                secret = request.form.get('__ac.field.secret', '')
+                stored_secret = self._get_session(request).get('secret', None)
+                if (stored_secret != secret) or request.method != 'POST':
+                    self.unauthorized(
+                        request = request,
+                        response=response,
+                        message=_(u"Invalid login or password."))
+                    return
             credentials = {'login': login, 'password': password,}
             pas = self._getPAS()
             if pas is not None:
