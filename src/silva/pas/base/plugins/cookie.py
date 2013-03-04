@@ -126,7 +126,7 @@ class SilvaCookieAuthHelper(BasePlugin):
         return SessionStore(request, region='auth')
 
     def _get_cookie_path(self, request):
-        return IVirtualSite(request).get_root_path()
+        return IVirtualSite(request).get_top_level_path()
 
     def unauthorized(self, request, response, message=None):
         service = queryUtility(ISecretService)
