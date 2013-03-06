@@ -1,10 +1,16 @@
 Changelog
 =========
 
-3.0.1 (unreleased)
+3.0.1 (2013/03/06)
 ------------------
 
-* ...
+* Update cookie path to use top level path provided by
+  ``IVirtualHost``.
+
+* Make the protection against request replay on the login form
+  optional. Some dubious browser plugins replay all request, making
+  impossible for people using such browser to login in (which is the
+  goal of this protection).
 
 3.0 (2012/12/11)
 ----------------
