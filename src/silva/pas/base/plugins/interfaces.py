@@ -4,9 +4,11 @@
 
 from Products.PluggableAuthService.interfaces import plugins
 
+
 class ICookiePlugin(
     plugins.IAuthenticationPlugin,
     plugins.IExtractionPlugin,
     plugins.IChallengePlugin,
+    plugins.ICredentialsUpdatePlugin,
     plugins.ICredentialsResetPlugin):
     pass

@@ -206,6 +206,9 @@ class SilvaCookieAuthHelper(BasePlugin):
 
     security.declarePrivate('authenticateCredentials')
     def authenticateCredentials(self, credentials):
+        """Authenticate given credentials. This is called form the PAS
+        API.
+        """
         request = self.REQUEST
         cookie = credentials.get('remote_cookie')
         if cookie is None:
@@ -228,7 +231,8 @@ class SilvaCookieAuthHelper(BasePlugin):
 
     security.declarePrivate('extractCredentials')
     def extractCredentials(self, request):
-        """ Extract credentials from cookie or 'request'.
+        """ Extract credentials from cookie or 'request'. This is
+        called from the PAS API.
         """
         credentials = {}
         cookie = request.get(self.cookie_name, '')
@@ -237,9 +241,15 @@ class SilvaCookieAuthHelper(BasePlugin):
 
         return credentials
 
+    def updateCredentials(self, request, response, user, new_password):
+        """ Responsd to a change of credentials from the PAS API.
+        """
+        self.updateCookieCredentials(request, response, user, user)
+
     security.declarePrivate('updateCookieCredentials')
     def updateCookieCredentials(self, request, response, user, login):
-        """Respond to change of credentials (NOOP for basic auth).
+        """ Set a cookie to authenticate again people after a change
+        of credentials.
         """
         now = int(time.time())
         timestamp = now % self.lifetime
@@ -263,7 +273,8 @@ class SilvaCookieAuthHelper(BasePlugin):
 
     security.declarePrivate('resetCredentials')
     def resetCredentials(self, request, response):
-        """ Raise unauthorized to tell browser to clear credentials.
+        """ Raise unauthorized to tell browser to clear
+        credentials. This is called from the PAS API.
         """
         path = self._get_cookie_path(request)
         response.expireCookie(self.cookie_name, path=path)
