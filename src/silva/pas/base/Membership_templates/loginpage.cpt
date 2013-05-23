@@ -3,7 +3,7 @@
 
   <h1 i18n:translate="">Protected area</h1>
 
-  <div style="color:#f00; font-weight:bold;"
+  <div class="form-error"
        tal:define="message view.message"
        tal:condition="message">
     <!-- override the local style with a div.warning selector in your css -->
