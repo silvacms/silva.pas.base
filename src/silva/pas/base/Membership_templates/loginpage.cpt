@@ -6,11 +6,10 @@
   <div class="form-error"
        tal:define="message view.message"
        tal:condition="message">
-    <!-- override the local style with a div.warning selector in your css -->
-    <div class="feedback warning"
+    <p class="feedback warning"
          tal:content="message">
       status
-    </div>
+    </p>
   </div>
 
   <p tal:condition="not view.message"
