@@ -4,6 +4,7 @@
 
 import time
 import urlparse
+import logging
 
 from zope.interface import implements
 from zope.component import getUtility, queryUtility
@@ -34,6 +35,9 @@ from silva.core.layout.traverser import applySkinButKeepSome
 from silva.core.services.interfaces import ISecretService
 from silva.core.views.interfaces import IVirtualSite, INonCachedLayer
 from silva.translations import translate as _
+
+
+logger = logging.getLogger('silva.pas')
 
 
 class SilvaCookieAuthHelper(BasePlugin):
@@ -227,6 +231,7 @@ class SilvaCookieAuthHelper(BasePlugin):
                 (int(time.time()) - timestamp) / self.lifetime)
             if cookie == expected:
                 return (user, login)
+            logger.info('Cookie verification for %s failed.', user)
         return None
 
     security.declarePrivate('extractCredentials')
@@ -306,6 +311,9 @@ class SilvaCookieAuthHelper(BasePlugin):
                 secret = request.form.get('__ac.field.secret', '')
                 stored_secret = self._get_session(request).get('secret', None)
                 if (stored_secret != secret) or request.method != 'POST':
+                    logger.info(
+                        'Secret verification failed during login for %s.',
+                        login)
                     self.unauthorized(
                         request = request,
                         response=response,
@@ -328,6 +336,11 @@ class SilvaCookieAuthHelper(BasePlugin):
                             authenticated = True
                             break
                     except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                        logger.info(
+                            'Authentication plugin (%s) failed '
+                            'during login for %s.',
+                            '/'.join(auth.getPhysicalPath()),
+                            credentials['login'])
                         continue
             if authenticated:
                 url = IVirtualSite(request).get_root_url()
@@ -340,6 +353,14 @@ class SilvaCookieAuthHelper(BasePlugin):
                     else:
                         url = origin
                 return response.redirect(url)
+            if pas is not None:
+                logger.info(
+                    'Authentication failed during login for %s (using %s).',
+                    credentials['login'], '/'.join(pas.getPhysicalPath()))
+            else:
+                logger.info(
+                    'Authentication failed, PAS is missing, '
+                    'during login for %s.', credentials['login'])
             self.unauthorized(
                 request=request,
                 response=response,
