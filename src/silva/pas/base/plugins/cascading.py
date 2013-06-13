@@ -41,7 +41,7 @@ class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
         for authenticator_id, auth in authenticators:
             try:
                 info = auth.authenticateCredentials(credentials)
-                if info is not None and info[0] is None:
+                if info is not None and info[0] is not None:
                     # Failed login can be None OR (None, None)
                     return info
             except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
