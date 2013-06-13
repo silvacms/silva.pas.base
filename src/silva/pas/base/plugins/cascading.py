@@ -3,15 +3,20 @@
 # See also LICENSE.txt
 
 from zope.interface import implements
+import logging
 
 from Products.PluggableAuthService.plugins.SearchPrincipalsPlugin import \
     SearchPrincipalsPlugin
+from Products.PluggableAuthService.PluggableAuthService import \
+    _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from Products.PluggableAuthService.interfaces.plugins import \
     IAuthenticationPlugin, IRolesPlugin, IGroupsPlugin, IPropertiesPlugin
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import InitializeClass
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+
+logger = logging.getLogger('silva.pas')
 
 
 class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
@@ -34,9 +39,20 @@ class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
         plugins = acl['plugins']
         authenticators = plugins.listPlugins(IAuthenticationPlugin)
         for authenticator_id, auth in authenticators:
-            uid_and_info = auth.authenticateCredentials(credentials)
-            if uid_and_info is not None:
-                return uid_and_info
+            try:
+                uid_and_info = auth.authenticateCredentials(credentials)
+                if uid_and_info is not None:
+                    return uid_and_info
+            except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                logger.info(
+                    'Authentication plugin (%s) failed '
+                    'during login for %s.',
+                    '/'.join(auth.getPhysicalPath()),
+                    credentials['login'])
+                continue
+        logger.info(
+            'Authentication cascading failed during login for %s.',
+            credentials['login'])
         return None
 
     security.declarePrivate('getPropertiesForUser')
