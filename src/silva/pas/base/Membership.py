@@ -101,7 +101,7 @@ class MemberService(SimpleMemberService):
         """Check if the given user is a PAS user.
         """
         pas = self._get_pas(location=location)
-        if pas is None:
+        if pas is None or userid is None:
             return False
         # If you use the silva membership user enumerater, you can get
         # more than one user found.
