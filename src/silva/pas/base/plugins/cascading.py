@@ -40,9 +40,10 @@ class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
         authenticators = plugins.listPlugins(IAuthenticationPlugin)
         for authenticator_id, auth in authenticators:
             try:
-                uid_and_info = auth.authenticateCredentials(credentials)
-                if uid_and_info is not None:
-                    return uid_and_info
+                info = auth.authenticateCredentials(credentials)
+                if info is not None and info[0] is None:
+                    # Failed login can be None OR (None, None)
+                    return info
             except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
                 logger.info(
                     'Authentication plugin (%s) failed '
@@ -50,9 +51,6 @@ class SilvaCascadingPASPlugin(SearchPrincipalsPlugin):
                     '/'.join(auth.getPhysicalPath()),
                     credentials['login'])
                 continue
-        logger.info(
-            'Authentication cascading failed during login for %s.',
-            credentials['login'])
         return None
 
     security.declarePrivate('getPropertiesForUser')
