@@ -1,10 +1,13 @@
 Changelog
 =========
 
-3.0.3 (unreleased)
+3.0.3 (2013/08/26)
 ------------------
 
-* ...
+* Update cookie and cascading to support broken third-party
+  plugins. They will now log errors of others plugins in order to
+  facilitate their configuration. They now support other type of
+  return values for those plugins too.
 
 3.0.2 (2013/05/24)
 ------------------
