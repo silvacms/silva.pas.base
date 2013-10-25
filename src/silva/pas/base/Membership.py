@@ -263,10 +263,12 @@ class LoginPageHeaders(ErrorHeaders):
 
 
 class ISettingsFields(Interface):
-    _display_usernames = schema.Bool(title=u'Display user names',
-        description=u'Display user names instead of login names in tab access.')
+    _display_usernames = schema.Bool(
+        title=u'Display user names',
+        description=u'Display user names instead of login names in the ' \
+            u'folder listing and access screen.')
     _display_emails = schema.Bool(title=u'Display emails',
-        description=u'Display emails in tab access.')
+        description=u'Display emails in the access screen.')
     _redirect_to_root = schema.Bool(title=u'Logout redirect to root',
         description=u"Always redirect to root after logout.")
 
