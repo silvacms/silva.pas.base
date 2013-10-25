@@ -39,14 +39,14 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(service, self.root.service_members)
         self.assertEqual(
             service.meta_type,
-            "Silva Pluggable Auth Service Member Service")
+            "Silva Pluggable Authentication Service")
         self.assertEqual(service, self.root.service_members)
         self.assertTrue(verifyObject(interfaces.IMemberService, service))
 
         service = queryUtility(interfaces.IGroupService)
         self.assertEqual(
             service.meta_type,
-            "Silva Pluggable Auth Service Member Service")
+            "Silva Pluggable Authentication Service")
         self.assertEqual(service, self.root.service_members)
         #self.assertTrue(verifyObject(interfaces.IGroupService, service))
 

@@ -2,12 +2,13 @@
 # Copyright (c) 2008-2013 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-from zope.interface import Interface
+from silva.core.interfaces import ISilvaConfigurableService
 from silva.core.services.interfaces import IMemberService, IGroupService
+from zope.interface import Interface
 
 
-class IPASService(IMemberService, IGroupService):
-    """Mark PAS Service Membership.
+class IPASService(IMemberService, IGroupService, ISilvaConfigurableService):
+    """PAS Service Membership.
     """
 
 

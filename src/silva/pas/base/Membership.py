@@ -34,7 +34,6 @@ from silva.pas.base.subscribers import create_acl_users
 from silva.translations import translate as _
 
 from zeam.form import silva as silvaforms
-from zeam.form.ztk.actions import EditAction
 
 
 class Group(object):
@@ -57,7 +56,7 @@ class Group(object):
 class MemberService(SimpleMemberService):
     """Silva Member Service who delagates members search to PAS.
     """
-    meta_type = 'Silva Pluggable Auth Service Member Service'
+    meta_type = 'Silva Pluggable Authentication Service'
     grok.implements(IPASService)
     grok.name('service_members')
     silvaconf.default_service()
@@ -278,11 +277,11 @@ class MemberServiceForm(silvaforms.ZMIForm):
 
     ignoreContent = False
 
-    label = _(u'Manage Member service')
+    label = _(u'Authentication configuration')
     description = _(u'Configure various settings related to user '
                     u'sessions and permissions.')
     fields = silvaforms.Fields(ISettingsFields)
-    actions = silvaforms.Actions(EditAction(_('Save changes')))
+    actions = silvaforms.Actions(silvaforms.EditAction())
 
     @silvaforms.action(_(u"Install PAS"),
                        available=lambda f: f.context._get_pas() is None)
@@ -291,3 +290,16 @@ class MemberServiceForm(silvaforms.ZMIForm):
         if 'acl_users' in root.objectIds():
             root.manage_delObjects(['acl_users'])
         create_acl_users(root)
+
+
+class MemberServiceConfiguration(silvaforms.ConfigurationForm):
+    grok.context(MemberService)
+    grok.name('admin')
+
+    label = _(u'Authentication configuration')
+    description = _(u'Configure various settings related to user '
+                    u'sessions and permissions.')
+    fields = silvaforms.Fields(ISettingsFields)
+    actions = silvaforms.Actions(
+        silvaforms.CancelAction(),
+        silvaforms.EditAction())
