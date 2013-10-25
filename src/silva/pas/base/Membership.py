@@ -303,5 +303,5 @@ class MemberServiceConfiguration(silvaforms.ConfigurationForm):
                     u'sessions and permissions.')
     fields = silvaforms.Fields(ISettingsFields)
     actions = silvaforms.Actions(
-        silvaforms.CancelAction(),
+        silvaforms.CancelConfigurationAction(),
         silvaforms.EditAction())
