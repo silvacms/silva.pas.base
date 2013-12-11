@@ -13,7 +13,7 @@ tests_require = [
 
 setup(name='silva.pas.base',
       version=version,
-      description="Base PluggableAuthService support for Silva",
+      description="Authentication support for Silva CMS",
       long_description=open("README.txt").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
@@ -25,7 +25,7 @@ setup(name='silva.pas.base',
       keywords='pas silva',
       author='Sylvain Viollon',
       author_email='info@infrae.com',
-      url='https://svn.infrae.com/silva.pas.base/trunk',
+      url='https://github.com/silvacms/silva.pas.base',
       license='BSD',
       package_dir={'': 'src'},
       packages=find_packages('src'),
