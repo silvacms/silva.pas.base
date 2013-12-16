@@ -2,7 +2,7 @@
 silva.pas.base
 ==============
 
-This package provides a new service for PluggableAuthService (PAS)
+This package provides a new service for `PluggableAuthService`_ (PAS)
 integration in `Silva`_. Installing it will also create a new PAS
 *acl_user* for the Silva Root, pre-configured to add users in it.
 
@@ -22,3 +22,4 @@ You can find the code of this extension in Git:
 https://github.com/silvacms/silva.pas.base
 
 .. _Silva: http://silvacms.org
+.. _PluggableAuthService: https://pypi.python.org/pypi/Products.PluggableAuthService
